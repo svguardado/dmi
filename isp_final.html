@@ -269,14 +269,12 @@ header{
 }
 .hd-left{display:flex;align-items:center;gap:12px}
 .hd-logo{
-  width:38px;height:38px;border-radius:10px;flex-shrink:0;
-  background:var(--primary);
+  width:54px;height:48px;flex-shrink:0;
+  background:#fff;border-radius:8px;padding:5px 7px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:800;
-  color:#fff;letter-spacing:.3px;
-  box-shadow:0 3px 12px rgba(0,63,135,.35);
-  border-bottom:3px solid var(--gold);
+  box-shadow:0 3px 12px rgba(0,0,0,.18);
 }
+.hd-logo svg{width:100%;height:100%;display:block}
 .hd-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px;line-height:1.2}
 .hd-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
 .hd-right{display:flex;align-items:center;gap:7px}
@@ -1099,10 +1097,22 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <!-- HEADER -->
 <header>
   <div class="hd-left">
-    <div class="hd-logo">ISP</div>
+    <div class="hd-logo" title="Instituto Salvadoreño de Pensiones">
+      <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ispCurve" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#E94560"/>
+            <stop offset="50%" stop-color="#F58634"/>
+            <stop offset="100%" stop-color="#FBC02D"/>
+          </linearGradient>
+        </defs>
+        <path d="M 55 22 Q 100 -2 145 22" stroke="url(#ispCurve)" stroke-width="14" stroke-linecap="round" fill="none"/>
+        <text x="100" y="115" text-anchor="middle" font-family="'DM Sans',Arial,sans-serif" font-weight="900" font-size="92" fill="#0A1F5C" letter-spacing="-2">ISP</text>
+      </svg>
+    </div>
     <div>
       <div class="hd-name">Instituto Salvadoreño de Pensiones</div>
-      <div class="hd-sub">Unidad de Mantenimiento · Infraestructura</div>
+      <div class="hd-sub">Transformando el presente, garantizamos tu futuro</div>
     </div>
   </div>
   <div class="hd-right">
@@ -1879,7 +1889,7 @@ const nowStr=()=>{const d=new Date();return`${d.getHours().toString().padStart(2
 const fmt=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});};
 const fmtL=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});};
 function toast(m,t='ok'){const el=document.getElementById('toast');el.textContent=m;el.className=`toast show ${t}`;clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',3200);}
-function onDateChange(){document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);}
+function onDateChange(){document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);saveMemory();}
 onDateChange();
 document.getElementById('notaText').textContent=nota;
 
@@ -2079,6 +2089,7 @@ function asignar(){
   // In multi mode: keep activity for next batch, clear only selection
   if(assignMode!=='multi'){document.getElementById('fAct').value='';document.getElementById('fHoraFin').value='';}
   clearSel();renderAssigned();chips();
+  saveMemory();
   toast(assigned===1?`${personal.find(x=>x.id===pids[0])?.nombre||'Colaborador'} asignado`:`✓ ${assigned} colaboradores asignados`);
 }
 
@@ -2125,8 +2136,8 @@ function renderAssigned(){
   });
   el.innerHTML=h;
 }
-function desmarcar(aid){const a=asigs.find(x=>x.id===aid);if(a){a.done=false;a.horaFin='';a.observaciones='';a.fotos=[];a.estado='pendiente';syncProj(a);renderAssigned();chips();}}
-function qAsig(aid){const a=asigs.find(x=>x.id===aid);if(!a)return;if(!confirm(`¿Retirar asignación de ${a.nombre}?`))return;asigs=asigs.filter(x=>x.id!==aid);renderPool();renderAssigned();chips();toast(`${a.nombre} devuelto al pool`);}
+function desmarcar(aid){const a=asigs.find(x=>x.id===aid);if(a){a.done=false;a.horaFin='';a.observaciones='';a.fotos=[];a.estado='pendiente';syncProj(a);renderAssigned();chips();saveMemory();}}
+function qAsig(aid){const a=asigs.find(x=>x.id===aid);if(!a)return;if(!confirm(`¿Retirar asignación de ${a.nombre}?`))return;asigs=asigs.filter(x=>x.id!==aid);renderPool();renderAssigned();chips();saveMemory();toast(`${a.nombre} devuelto al pool`);}
 function syncProj(a){if(!a.proyectoId)return;const pr=proyectos.find(x=>x.id==a.proyectoId);if(!pr||!pr.hist)return;const i=pr.hist.findIndex(h=>h.id===a.id);if(i>=0)pr.hist[i]={...a};else pr.hist.push({...a});}
 
 /* ══════════════════════════════════════════════════════════════
@@ -2154,7 +2165,7 @@ function closeComp(){document.getElementById('mComp').classList.remove('on');com
 function prevPhotos(e){Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{tempPhotos.push(ev.target.result);renderPPs();};r.readAsDataURL(f);});}
 function renderPPs(){document.getElementById('photoPrevs').innerHTML=tempPhotos.map((f,i)=>`<div class="photo-prev"><img src="${f}"><button class="photo-prev-del" onclick="rmP(${i})">✕</button></div>`).join('');}
 function rmP(i){tempPhotos.splice(i,1);renderPPs();}
-function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.done=true;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=document.getElementById('cEst').value;a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];syncProj(a);closeComp();renderAssigned();chips();toast(`✓ ${a.nombre} registrado`);}
+function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.done=true;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=document.getElementById('cEst').value;a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];syncProj(a);closeComp();renderAssigned();chips();saveMemory();toast(`✓ ${a.nombre} registrado`);}
 
 /* ═══ LIGHTBOX ═══ */
 function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('on');}
@@ -3766,6 +3777,7 @@ const LS_KEY = 'isp_historial_v1';
 const LS_PERS = 'isp_personal_v1';
 const LS_ACTS = 'isp_actfreq_v1';
 const LS_PROJS = 'isp_proyectos_v1';
+const LS_DIA = 'isp_dia_actual_v1';  // FIX: persist current day's asigs
 
 let historial = []; // Array of day snapshots
 let histFilter = 'todo';
@@ -3785,6 +3797,21 @@ function loadMemory(){
     const pr = localStorage.getItem(LS_PROJS);
     if(pr){ const loaded=JSON.parse(pr); if(loaded.length) proyectos=loaded; }
 
+    // FIX: Restore current day's asigs and nota
+    const d = localStorage.getItem(LS_DIA);
+    if(d){
+      try{
+        const dia = JSON.parse(d);
+        if(dia.asigs) asigs = dia.asigs;
+        if(dia.nota) nota = dia.nota;
+        if(dia.nAid) nAid = dia.nAid;
+        if(dia.fecha){
+          const dp = document.getElementById('globalDate');
+          if(dp) dp.value = dia.fecha;
+        }
+      } catch(e2){ console.warn('Error parsing dia actual:', e2); }
+    }
+
     updateMemPill();
   } catch(e){ console.warn('Error loading memory:', e); }
 }
@@ -3796,6 +3823,15 @@ function saveMemory(){
     localStorage.setItem(LS_PERS, JSON.stringify(personal));
     localStorage.setItem(LS_ACTS, JSON.stringify(actFrec));
     localStorage.setItem(LS_PROJS, JSON.stringify(proyectos));
+    // FIX: Save current day's asigs and nota
+    const dp = document.getElementById('globalDate');
+    const dia = {
+      fecha: dp ? dp.value : null,
+      asigs: asigs,
+      nota: nota,
+      nAid: nAid
+    };
+    localStorage.setItem(LS_DIA, JSON.stringify(dia));
     updateMemPill();
   } catch(e){
     if(e.name==='QuotaExceededError'){
@@ -3973,6 +4009,7 @@ function renderHistorial(){
           <span style="font-size:11px;font-weight:700;color:var(--primary)">${pct}%</span>
           <div style="display:flex;gap:5px;margin-left:4px" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-xs" onclick="abrirResumenDia('${d.fecha}')" title="Ver resumen de este día">📊</button>
+            <button class="btn btn-gold btn-xs" onclick="reabrirDia('${d.fecha}')" title="Reabrir este día para editar y agregar avances">✏ Editar</button>
             <button class="btn btn-coral btn-xs" onclick="eliminarDia('${d.fecha}')" title="Eliminar este día">✕</button>
           </div>
           <span class="hd-toggle">▼</span>
@@ -4035,6 +4072,55 @@ function eliminarDia(fecha){
   saveMemory();
   renderHistorial();
   toast('Día eliminado','warn');
+}
+
+/* ── REABRIR DÍA: load a closed day back into asigs for editing ── */
+function reabrirDia(fecha){
+  const dia = historial.find(d=>d.fecha===fecha);
+  if(!dia){toast('No se encontró el día','err');return;}
+  if(asigs.length>0){
+    if(!confirm(`Tienes ${asigs.length} asignaciones activas. ¿Quieres reemplazarlas con las del ${fmt(fecha)}?\n\nLas asignaciones actuales se perderán si no las cierras antes.`)) return;
+  } else {
+    if(!confirm(`¿Reabrir el día ${fmt(fecha)} para editar y agregar avances?`)) return;
+  }
+  // Load the day's data into current state
+  asigs = JSON.parse(JSON.stringify(dia.asignaciones || []));
+  nota = dia.nota || '';
+  // Update nAid to be higher than any existing id
+  const maxId = asigs.reduce((m,a)=>Math.max(m,a.id||0),0);
+  nAid = maxId + 1;
+  // Set the date picker
+  const dp = document.getElementById('globalDate');
+  if(dp) dp.value = fecha;
+  // Update note text
+  const nt = document.getElementById('notaText');
+  if(nt) nt.textContent = nota;
+  saveMemory();
+  renderPool();
+  renderAssigned();
+  chips();
+  // Navigate to seguimiento page
+  showPg('seguimiento', document.querySelector('.nt[onclick*="seguimiento"]'));
+  toast(`✓ Día ${fmt(fecha)} reabierto — ahora puedes editar y agregar avances`);
+}
+
+/* ── EDITAR ASIGNACIÓN: edit individual assignment (date, time, activity) ── */
+function editAsig(aid){
+  const a = asigs.find(x=>x.id===aid);
+  if(!a){toast('Asignación no encontrada','err');return;}
+  const newAct = prompt('Actividad:', a.actividad);
+  if(newAct===null) return;
+  const newHora = prompt('Hora de entrada:', a.hora||'6:30 am');
+  if(newHora===null) return;
+  const newHoraFin = prompt('Hora estimada fin (opcional):', a.horaEstFin||'');
+  if(newHoraFin===null) return;
+  a.actividad = newAct.trim() || a.actividad;
+  a.hora = newHora.trim() || a.hora;
+  a.horaEstFin = newHoraFin.trim();
+  saveMemory();
+  renderAssigned();
+  if(typeof renderSeguimiento==='function') renderSeguimiento();
+  toast('✓ Asignación actualizada');
 }
 
 function confirmarLimpiarHist(){
@@ -4977,6 +5063,7 @@ function renderSeguimiento() {
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
           ${estadoBadge}
+          <button class="btn btn-ghost btn-xs" onclick="editAsig(${a.id})" title="Editar actividad y horarios">✏</button>
           <button class="btn btn-primary btn-xs" onclick="abrirSeg(${a.id})">📸 Registrar</button>
         </div>
       </div>
@@ -5111,12 +5198,20 @@ async function exportarJPG() {
   }).join('');
 
   const ndCount = personal.filter(p => p.status !== 'libre').length;
+  const logoSvg = `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" style="width:78px;height:62px;display:block">
+    <defs><linearGradient id="ispCurveJ" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#E94560"/><stop offset="50%" stop-color="#F58634"/><stop offset="100%" stop-color="#FBC02D"/></linearGradient></defs>
+    <path d="M 55 22 Q 100 -2 145 22" stroke="url(#ispCurveJ)" stroke-width="14" stroke-linecap="round" fill="none"/>
+    <text x="100" y="115" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="92" fill="#0A1F5C" letter-spacing="-2">ISP</text>
+  </svg>`;
   const html = `<div style="width:1080px;background:#fff;padding:0;font-family:'Segoe UI',Arial,sans-serif">
-    <div style="background:linear-gradient(135deg,#003F87 0%,#005ABF 100%);padding:32px 40px;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:2px">ISP</div>
-        <div style="font-size:13px;color:#C8D8F0;margin-top:4px;font-weight:500">Instituto Salvadoreño de Pensiones</div>
-        <div style="font-size:12px;color:#A0B8D8;margin-top:2px">Unidad de Mantenimiento · Infraestructura</div>
+    <div style="background:linear-gradient(135deg,#0A1F5C 0%,#1A3A8F 100%);padding:28px 40px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 4px 14px rgba(0,0,0,.18)">${logoSvg}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.3px">Instituto Salvadoreño de Pensiones</div>
+          <div style="font-size:12px;color:#FBC02D;margin-top:3px;font-weight:600;font-style:italic">Transformando el presente, garantizamos tu futuro</div>
+          <div style="font-size:11px;color:#A0B8D8;margin-top:2px">Unidad de Mantenimiento · Infraestructura</div>
+        </div>
       </div>
       <div style="text-align:right">
         <div style="font-size:13px;color:#C8D8F0;font-weight:500">Programación del día</div>
@@ -5234,8 +5329,8 @@ function exportarExcelModerno() {
   th,td{border:1px solid #DDE6EE;padding:8px 12px;vertical-align:middle}
   th{background:#003F87;color:#fff;font-weight:700;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
   tr:hover td{background:#F0F4F8}
-  .hdr-cell{background:#003F87;color:#fff;font-size:22px;font-weight:900;letter-spacing:2px;border:none;padding:20px 24px}
-  .sub-cell{background:#003F87;color:#C8D8F0;font-size:12px;border:none;padding:4px 24px 16px}
+  .hdr-cell{background:#0A1F5C;color:#fff;font-size:20px;font-weight:900;letter-spacing:1px;border:none;padding:18px 24px;text-align:center}
+  .sub-cell{background:#0A1F5C;color:#FBC02D;font-size:12px;border:none;padding:4px 24px 16px;text-align:center;font-style:italic}
   .title-cell{background:#F0F4F8;color:#003F87;font-size:15px;font-weight:700;border:none;padding:12px 24px}
   .kpi-cell{text-align:center;background:#F8FAFC;font-weight:700;font-size:20px}
   .kpi-label{text-align:center;background:#F8FAFC;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px}
@@ -5244,8 +5339,8 @@ function exportarExcelModerno() {
 </style>
 </head><body>
 <table>
-  <tr><td class="hdr-cell" colspan="9">ISP</td></tr>
-  <tr><td class="sub-cell" colspan="9">Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento</td></tr>
+  <tr><td class="hdr-cell" colspan="9">ISP — INSTITUTO SALVADOREÑO DE PENSIONES</td></tr>
+  <tr><td class="sub-cell" colspan="9">Transformando el presente, garantizamos tu futuro · Unidad de Mantenimiento</td></tr>
   <tr><td class="title-cell" colspan="9">📋 PROGRAMACIÓN DIARIA — ${dateStr.toUpperCase()}</td></tr>
   <tr>
     <td class="kpi-cell" colspan="2">${asigs.length}</td>
@@ -5375,11 +5470,18 @@ function exportarWordSeguimiento() {
 </style>
 </head><body>
 <!-- ENCABEZADO -->
-<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid #003F87;margin-bottom:20px">
-  <div>
-    <div style="font-size:36px;font-weight:900;color:#003F87;letter-spacing:3px;line-height:1">ISP</div>
-    <div style="font-size:13px;color:#475569;margin-top:4px">Instituto Salvadoreño de Pensiones</div>
-    <div style="font-size:12px;color:#94a3b8">Unidad de Mantenimiento · Infraestructura</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid #0A1F5C;margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:14px">
+    <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" style="width:80px;height:62px">
+      <defs><linearGradient id="ispCurveW" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#E94560"/><stop offset="50%" stop-color="#F58634"/><stop offset="100%" stop-color="#FBC02D"/></linearGradient></defs>
+      <path d="M 55 22 Q 100 -2 145 22" stroke="url(#ispCurveW)" stroke-width="14" stroke-linecap="round" fill="none"/>
+      <text x="100" y="115" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="92" fill="#0A1F5C" letter-spacing="-2">ISP</text>
+    </svg>
+    <div>
+      <div style="font-size:16px;color:#0A1F5C;font-weight:800;line-height:1.2">Instituto Salvadoreño de Pensiones</div>
+      <div style="font-size:11px;color:#F58634;margin-top:3px;font-weight:600;font-style:italic">Transformando el presente, garantizamos tu futuro</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:2px">Unidad de Mantenimiento · Infraestructura</div>
+    </div>
   </div>
   <div style="text-align:right">
     <div style="font-size:18px;font-weight:700;color:#003F87;text-transform:capitalize">${dateStr}</div>
