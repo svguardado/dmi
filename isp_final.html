@@ -225,7 +225,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>ISP — Gestión de Actividades</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -760,7 +760,29 @@ header{
     position:fixed;top:56px;left:0;right:0;z-index:299;
     overflow-x:auto;
   }
-  .mob-actions .btn{flex-shrink:0;font-size:12px;padding:6px 11px}
+  .mob-actions .btn{flex-shrink:0;font-size:14px;padding:8px 13px}
+
+  /* ─ LARGER BASE FONT ON MOBILE ─ */
+  body{font-size:15px}
+  .pc-name{font-size:15px}
+  .pc-area{font-size:13px}
+  .sel-empty{font-size:15px}
+  .sel-name{font-size:16px}
+  .sel-sub{font-size:13px}
+  .fg label{font-size:13px}
+  .fg input,.fg select,.fg textarea{font-size:16px!important}
+  .act-chip{font-size:13px;padding:7px 13px}
+  .assign-name{font-size:15px}
+  .assign-act{font-size:14px}
+  .kpi-val{font-size:26px}
+  .kpi-lbl{font-size:12px}
+  .rpt-title{font-size:18px}
+  .hd-name{font-size:14px!important}
+  .modal h3{font-size:18px}
+  .modal-sub{font-size:14px}
+  .nt{font-size:11px}
+  .seg-card-head .assign-name, .seg-card-head div{font-size:15px}
+  .hist-date{font-size:15px}
 
   /* ─ BOTTOM NAV ─ */
   .nav{
@@ -5266,15 +5288,42 @@ async function exportarJPG() {
   try {
     const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
     document.body.removeChild(wrapper);
-    const link = document.createElement('a');
-    link.download = 'ISP_Programacion_' + date + '.jpg';
-    link.href = canvas.toDataURL('image/jpeg', 0.92);
-    link.click();
-    toast('✓ Imagen JPG descargada — lista para compartir por WhatsApp');
+
+    // Try Web Share API first (mobile — shares directly to WhatsApp)
+    if (navigator.share && navigator.canShare) {
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'ISP_Programacion_' + date + '.jpg', { type: 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'ISP — Programación ' + date,
+            });
+            toast('✓ Imagen lista para compartir');
+            return;
+          } catch(shareErr) {
+            if (shareErr.name === 'AbortError') return; // user cancelled
+          }
+        }
+        // Fallback: download
+        _downloadJpg(canvas, date);
+      }, 'image/jpeg', 0.92);
+    } else {
+      // Desktop: download the image
+      _downloadJpg(canvas, date);
+    }
   } catch(e) {
-    document.body.removeChild(wrapper);
+    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
     toast('Error generando JPG: ' + e.message, 'err');
   }
+}
+
+function _downloadJpg(canvas, date) {
+  const link = document.createElement('a');
+  link.download = 'ISP_Programacion_' + date + '.jpg';
+  link.href = canvas.toDataURL('image/jpeg', 0.92);
+  link.click();
+  toast('✓ JPG descargado — ábrelo desde Descargas y compártelo por WhatsApp');
 }
 
 async function exportarJPGProgramacion() {
