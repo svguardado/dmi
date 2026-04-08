@@ -232,6 +232,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --canvas:#F0F4F8;--white:#FFFFFF;--surface:#FFFFFF;--surface2:#F7FAFC;
@@ -1121,6 +1124,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <input type="date" id="globalDate" value="2026-03-20" onchange="onDateChange()">
     </div>
     <div class="mem-pill" id="memPill" title="Días guardados en memoria">💾 <span id="memCount">0</span> días</div>
+    <div id="syncPill" title="Estado de sincronización con la nube" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:default">☁ Conectando…</div>
     <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button>
     <button class="btn btn-gold btn-sm" onclick="exportarJPG()">📸 JPG</button>
     <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
@@ -5552,6 +5556,170 @@ ${ndSection}
   smartDownload(blob, 'ISP_Reporte_Seguimiento_' + date + '.doc');
   toast('✓ Reporte Word descargado con fotos y detalle de seguimiento');
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   FIREBASE INTEGRATION — ISP Gestión de Actividades
+   Sincronización en la nube con Google Firestore
+   Las fotos se guardan solo en este dispositivo (localStorage)
+   por límite de tamaño. El resto sincroniza automáticamente.
+══════════════════════════════════════════════════════════════ */
+
+const FIRE_CFG = {
+  apiKey: "AIzaSyDhEHZYqbtUwM0QCiZo5Zm0PLKXb1V2xwk",
+  authDomain: "isp-dmi.firebaseapp.com",
+  projectId: "isp-dmi",
+  storageBucket: "isp-dmi.firebasestorage.app",
+  messagingSenderId: "523415914277",
+  appId: "1:523415914277:web:11c509943ceeeaa7203ccc"
+};
+
+let fireApp, db, FDOC;
+let _fireTimer = null;
+let _fireReady = false;
+
+/* ── Sync status pill ── */
+function setSyncStatus(st) {
+  const el = document.getElementById('syncPill');
+  if (!el) return;
+  const cfg = {
+    saving:  ['☁ Guardando…', '#FFF8E6', '#B8820A'],
+    saved:   ['✓ Nube OK',    '#E8F5ED', '#1A7A4A'],
+    error:   ['⚠ Sin nube',   '#FEF0F0', '#C0392B'],
+    loading: ['☁ Cargando…',  '#E8EFF8', '#003F87'],
+    ok:      ['☁ Nube',       '#E8EFF8', '#003F87'],
+  };
+  const [txt, bg, col] = cfg[st] || cfg.ok;
+  el.textContent = txt;
+  el.style.background = bg;
+  el.style.color = col;
+  if (st === 'saved') setTimeout(() => setSyncStatus('ok'), 3000);
+}
+
+/* ── Remove base64 photos before cloud save (too large for Firestore) ── */
+function stripPhotos(arr) {
+  if (!arr) return [];
+  return arr.map(a => {
+    const clean = { ...a, fotos: [] };
+    if (clean.seguimiento) clean.seguimiento = { ...clean.seguimiento, fotos: [] };
+    return clean;
+  });
+}
+
+/* ── Save everything to Firestore ── */
+async function saveToFirebase() {
+  if (!_fireReady || !FDOC) return;
+  setSyncStatus('saving');
+  try {
+    const dp = document.getElementById('globalDate');
+    const payload = {
+      personal,
+      actFrec,
+      proyectos,
+      historial: historial.map(d => ({
+        ...d,
+        asignaciones: stripPhotos(d.asignaciones)
+      })),
+      diaActual: {
+        fecha: dp ? dp.value : null,
+        asigs: stripPhotos(asigs),
+        nota,
+        nAid
+      },
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await FDOC.set(payload);
+    setSyncStatus('saved');
+  } catch (e) {
+    console.error('Firebase save error:', e);
+    setSyncStatus('error');
+  }
+}
+
+/* ── Schedule a save with 2s debounce ── */
+function scheduleFire() {
+  if (!_fireReady) return;
+  if (_fireTimer) clearTimeout(_fireTimer);
+  _fireTimer = setTimeout(saveToFirebase, 2000);
+}
+
+/* ── Override saveMemory to also push to Firebase ── */
+const _origSaveMemory = saveMemory;
+saveMemory = function () {
+  _origSaveMemory();
+  scheduleFire();
+};
+
+/* ── Load data from Firestore and refresh all UI ── */
+async function loadFromFirebase() {
+  try {
+    const snap = await FDOC.get();
+    if (!snap.exists) {
+      // First time ever: upload local data to cloud
+      setSyncStatus('ok');
+      await saveToFirebase();
+      toast('✓ Primera conexión — datos guardados en la nube');
+      return;
+    }
+    const d = snap.data();
+    if (d.personal  && d.personal.length)  personal  = d.personal;
+    if (d.actFrec   && d.actFrec.length)   actFrec   = d.actFrec;
+    if (d.proyectos && d.proyectos.length) proyectos = d.proyectos;
+    if (d.historial && d.historial.length) historial = d.historial;
+    if (d.diaActual) {
+      const dia = d.diaActual;
+      if (dia.asigs && dia.asigs.length) {
+        // Merge cloud asigs with local fotos (photos stay local)
+        const localDia = (() => {
+          try { return JSON.parse(localStorage.getItem(LS_DIA) || '{}'); } catch(e2) { return {}; }
+        })();
+        asigs = dia.asigs.map(a => {
+          const local = (localDia.asigs || []).find(x => x.id === a.id);
+          return local ? { ...a, fotos: local.fotos || [], seguimiento: local.seguimiento ? { ...a.seguimiento, fotos: (local.seguimiento || {}).fotos || [] } : a.seguimiento } : a;
+        });
+      }
+      if (dia.nota)  nota  = dia.nota;
+      if (dia.nAid)  nAid  = dia.nAid;
+      if (dia.fecha) {
+        const dp = document.getElementById('globalDate');
+        if (dp) { dp.value = dia.fecha; onDateChange(); }
+      }
+    }
+    // Re-render UI with fresh data
+    renderPool();
+    renderAssigned();
+    chips();
+    renderQuickActs();
+    updateProjSel();
+    renderHistorial();
+    updateMemPill();
+    const nt = document.getElementById('notaText');
+    if (nt) nt.textContent = nota;
+    setSyncStatus('ok');
+    toast('✓ Datos cargados desde la nube');
+  } catch (e) {
+    console.error('Firebase load error:', e);
+    setSyncStatus('error');
+    toast('ℹ Trabajando sin internet — datos locales activos', 'warn');
+  }
+}
+
+/* ── Init Firebase on page load ── */
+(async function initFire() {
+  try {
+    fireApp = firebase.initializeApp(FIRE_CFG);
+    db      = firebase.firestore();
+    FDOC    = db.collection('isp').doc('datos');
+    _fireReady = true;
+    setSyncStatus('loading');
+    await loadFromFirebase();
+  } catch (e) {
+    console.error('Firebase init error:', e);
+    setSyncStatus('error');
+    toast('ℹ Firebase no disponible — usando datos locales', 'warn');
+  }
+})();
+
 
 
 </script>
