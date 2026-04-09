@@ -1485,10 +1485,17 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div id="shareList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);margin-bottom:8px">Hoja completa para colaboradores</div>
+      <div class="share-item" style="margin-bottom:8px">
+        <div>
+          <div style="font-weight:700;font-size:13px">📸 Imagen para WhatsApp</div>
+          <div style="font-size:11.5px;color:var(--t3);margin-top:2px">Captura como imagen y abre WhatsApp directo</div>
+        </div>
+        <button class="btn btn-gold btn-sm" id="btnShareJPG" onclick="compartirHojaJPGDirecto()">📸 Enviar</button>
+      </div>
       <div class="share-item">
         <div>
           <div style="font-weight:700;font-size:13px">📋 Hoja de actividades del día</div>
-          <div style="font-size:11.5px;color:var(--t3);margin-top:2px">Todas las áreas · Espacio para firma · Para imprimir o WhatsApp</div>
+          <div style="font-size:11.5px;color:var(--t3);margin-top:2px">Todas las áreas · Espacio para firma · Para imprimir</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="abrirHojaColaboradores()">📄 Abrir</button>
       </div>
@@ -5858,6 +5865,100 @@ async function loadFromFirebase() {
   }
 })();
 
+
+/* ── COMPARTIR HOJA COMO JPG DIRECTO (main window, sin popup) ── */
+async function compartirHojaJPGDirecto() {
+  if (!asigs.length) { toast('No hay asignaciones para compartir', 'warn'); return; }
+  const btn = document.getElementById('btnShareJPG');
+  if (btn) { btn.textContent = '⏳ Generando...'; btn.disabled = true; }
+
+  const date = document.getElementById('globalDate').value;
+  const dateStr = new Date(date + 'T12:00:00').toLocaleDateString('es-SV', {weekday:'long', day:'2-digit', month:'long', year:'numeric'});
+  const ACOL = {"Club de Playa":"#005A8E","Centro de Gobierno":"#003F87","Módulo 7":"#155E38","Baños M4":"#7B2D12","Otros":"#2C3E50"};
+  const grp = {};
+  asigs.forEach(a => { if (!grp[a.area]) grp[a.area] = []; grp[a.area].push(a); });
+  const noDisp = personal.filter(p => p.status !== 'libre');
+
+  const areasHtml = [...AREAS, ...Object.keys(grp).filter(k => !AREAS.includes(k))].filter(a => grp[a]?.length).map(area => {
+    const col = ACOL[area] || '#2C3E50';
+    const rows = grp[area].map((a, i) => {
+      const pp = personal.find(x => x.id === a.pid);
+      const specs = pp?.specs?.length ? `<div style="font-size:14px;color:#7B68EE;margin-top:2px">${pp.specs.slice(0,2).join(' · ')}</div>` : '';
+      return `<tr style="background:${i%2===0?'#F8FAFC':'#fff'}">
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:24px;color:#9DB2C4;font-weight:700;font-size:14px;text-align:center">${i+1}</td>
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6"><div style="font-weight:700;font-size:17px;color:#0D1B2A">${a.nombre}</div>${specs}</td>
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;font-size:16px;color:#334155">${a.actividad}</td>
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;font-size:15px;font-weight:700;color:#5D7285;text-align:center;white-space:nowrap">${a.hora || '6:30 am'}</td>
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:80px;border-left:2px dashed #DDE6EE"></td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:18px;border-radius:12px;overflow:hidden;border:2px solid ${col}">
+      <div style="background:${col};padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#fff;font-size:17px;font-weight:800;letter-spacing:.5px">${area}</span>
+        <span style="background:rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px">${grp[area].length} colaboradores</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:${col}12">
+          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">#</th>
+          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Colaborador</th>
+          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Actividad del día</th>
+          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">Hora</th>
+          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">✓ Firma</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+
+  const notaHtml = nota ? `<div style="background:#FFF8E6;border-left:4px solid #C8A84B;padding:12px 16px;margin-bottom:16px;border-radius:6px;font-size:15px;color:#7A5A10"><strong>📌 Nota:</strong> ${nota}</div>` : '';
+  const ndHtml = noDisp.length ? `<div style="background:#FEF0F0;border-left:4px solid #D62828;padding:12px 16px;margin-bottom:16px;border-radius:6px;font-size:14px;color:#7A1A1A"><strong>⚠ No disponibles:</strong> ${noDisp.map(p => p.nombre + ' (' + (p.status === 'compensatorio' ? 'Comp.' : 'Incap.') + ')').join(' · ')}</div>` : '';
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#fff;padding:32px;font-family:Arial,sans-serif;z-index:-1';
+  wrapper.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0A1F5C,#1A3580);border-radius:14px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">ISP</div>
+        <div style="font-size:14px;color:#C8D8F0;margin-top:4px">Instituto Salvadoreño de Pensiones</div>
+        <div style="font-size:13px;color:#FBC02D;margin-top:2px;font-style:italic">Transformando el presente, garantizamos tu futuro</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#A0B8D8">Programación del día</div>
+        <div style="font-size:20px;font-weight:800;color:#fff;margin-top:4px;text-transform:capitalize">${dateStr}</div>
+        <div style="font-size:13px;color:#FBC02D;margin-top:4px;font-weight:700">${asigs.length} actividades asignadas</div>
+      </div>
+    </div>
+    ${notaHtml}${ndHtml}${areasHtml}
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid #DDE6EE;display:flex;justify-content:space-between;font-size:12px;color:#94a3b8">
+      <span>ISP — Unidad de Mantenimiento · Infraestructura</span>
+      <span>Generado: ${new Date().toLocaleString('es-SV')}</span>
+    </div>`;
+  document.body.appendChild(wrapper);
+
+  try {
+    const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, backgroundColor: '#ffffff', allowTaint: true });
+    document.body.removeChild(wrapper);
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+    const file = new File([blob], `ISP_Programacion_${date}.jpg`, { type: 'image/jpeg' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'ISP — Programación ' + dateStr });
+      toast('✓ Imagen lista para compartir');
+    } else {
+      // Fallback: download
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/jpeg', 0.92);
+      a.download = `ISP_Programacion_${date}.jpg`;
+      a.click();
+      toast('✓ Imagen descargada — ábrela desde Descargas y comparte por WhatsApp');
+    }
+  } catch (e) {
+    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    if (e.name !== 'AbortError') toast('Error: ' + e.message, 'err');
+  } finally {
+    if (btn) { btn.textContent = '📸 Enviar'; btn.disabled = false; }
+  }
+}
 
 
 </script>
