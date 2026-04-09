@@ -1999,8 +1999,10 @@ const nowStr=()=>{const d=new Date();return`${d.getHours().toString().padStart(2
 const fmt=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});};
 const fmtL=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});};
 function toast(m,t='ok'){const el=document.getElementById('toast');el.textContent=m;el.className=`toast show ${t}`;clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',3200);}
-function onDateChange(){document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);saveMemory();}
-onDateChange();
+function onDateChange(){document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);if(_memLoaded)saveMemory();}
+let _memLoaded=false;
+// Solo actualiza el display — NO llama saveMemory() todavía (asigs aún no cargados)
+document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);
 document.getElementById('notaText').textContent=nota;
 
 /* ═══ NAV ═══ */
@@ -4871,6 +4873,9 @@ function abrirExport(){
    updateProjSel() → select options from proyectos query
 ══════════════════════════════════════════════════════════════ */
 loadMemory();   // ← load localStorage FIRST
+_memLoaded=true; // desde aquí, onDateChange() sí puede guardar
+// Actualiza display de fecha con la fecha restaurada
+document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);
 renderPool();
 renderAssigned();
 chips();
