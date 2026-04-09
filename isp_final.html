@@ -628,6 +628,13 @@ header{
 .empty-icon{font-size:36px;margin-bottom:10px;opacity:.5}
 .empty p{font-size:13px;font-weight:500}
 
+/* FONT ZOOM CONTROL */
+.font-ctrl{display:flex;align-items:center;gap:1px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:var(--r-sm);padding:2px 5px}
+.font-ctrl button{width:26px;height:26px;border-radius:5px;border:none;background:none;color:#fff;font-size:11px;font-weight:800;cursor:pointer;transition:background .12s;display:flex;align-items:center;justify-content:center;letter-spacing:-.5px}
+.font-ctrl button:hover{background:rgba(255,255,255,.22)}
+.font-ctrl button:active{background:rgba(255,255,255,.35)}
+.fc-cur{font-size:10px;font-weight:700;color:rgba(255,255,255,.85);min-width:30px;text-align:center;line-height:1}
+
 /* TOAST */
 .toast{position:fixed;bottom:22px;right:22px;z-index:9999;border-radius:var(--r);padding:12px 17px;font-size:13px;font-weight:600;box-shadow:var(--sh4);opacity:0;transform:translateY(8px);transition:all .22s;pointer-events:none;max-width:320px;background:var(--t1);color:#fff;display:flex;align-items:center;gap:8px}
 .toast.show{opacity:1;transform:translateY(0)}
@@ -1164,6 +1171,11 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <input type="date" id="globalDate" value="2026-03-20" onchange="onDateChange()">
     </div>
     <div class="mem-pill" id="memPill" title="Días guardados en memoria">💾 <span id="memCount">0</span> días</div>
+    <div class="font-ctrl" title="Tamaño de texto">
+      <button onclick="adjZoom(-1)" aria-label="Reducir texto">A−</button>
+      <span class="fc-cur" id="fcLabel">100%</span>
+      <button onclick="adjZoom(1)" aria-label="Aumentar texto">A+</button>
+    </div>
     <div id="syncPill" title="Toca para reconectar" onclick="reintentarNube()" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:pointer">☁ Conectando…</div>
     <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button>
     <button class="btn btn-gold btn-sm" onclick="exportarJPG()">📸 JPG</button>
@@ -1179,6 +1191,8 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <button class="btn btn-primary btn-sm" onclick="abrirExport()">⬇ Exportar</button>
   <button class="btn btn-ghost btn-sm" onclick="openNota()">✏ Nota</button>
   <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Imprimir</button>
+  <button class="btn btn-ghost btn-sm" onclick="adjZoom(-1)" title="Reducir texto" style="letter-spacing:-.5px">A−</button>
+  <button class="btn btn-ghost btn-sm" onclick="adjZoom(1)" title="Aumentar texto" style="font-weight:800;letter-spacing:-.5px">A+</button>
 </div>
 
 <!-- NAV -->
@@ -1999,6 +2013,22 @@ const nowStr=()=>{const d=new Date();return`${d.getHours().toString().padStart(2
 const fmt=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});};
 const fmtL=v=>{const d=new Date(v+'T12:00:00');return d.toLocaleDateString('es-SV',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});};
 function toast(m,t='ok'){const el=document.getElementById('toast');el.textContent=m;el.className=`toast show ${t}`;clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',3200);}
+
+/* ── ZOOM / TAMAÑO DE TEXTO ── */
+const ZOOM_STEPS=[0.8,0.85,0.9,1.0,1.1,1.2,1.3,1.5];
+const ZOOM_LABELS=['80%','85%','90%','100%','110%','120%','130%','150%'];
+let _zoomIdx=3; // default 100%
+function applyZoom(idx){
+  _zoomIdx=Math.max(0,Math.min(ZOOM_STEPS.length-1,idx));
+  document.documentElement.style.zoom=ZOOM_STEPS[_zoomIdx];
+  const lbl=document.getElementById('fcLabel');
+  if(lbl)lbl.textContent=ZOOM_LABELS[_zoomIdx];
+  try{localStorage.setItem('isp_zoom_idx',_zoomIdx);}catch(e){}
+}
+function adjZoom(dir){applyZoom(_zoomIdx+dir);}
+// Restaurar zoom guardado
+(function(){const s=parseInt(localStorage.getItem('isp_zoom_idx'));applyZoom(isNaN(s)?3:s);})();
+
 function onDateChange(){document.getElementById('rptDate').textContent=fmt(document.getElementById('globalDate').value);if(_memLoaded)saveMemory();}
 let _memLoaded=false;
 // Solo actualiza el display — NO llama saveMemory() todavía (asigs aún no cargados)
