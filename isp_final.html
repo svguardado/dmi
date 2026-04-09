@@ -367,11 +367,13 @@ header{
 .b-libre{background:var(--mint-lt);color:var(--mint)}
 .b-comp{background:var(--primary-lt);color:var(--primary)}
 .b-incap{background:var(--coral-lt);color:var(--coral)}
-.pcard-acts{display:flex;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.ca{flex:1;padding:5px 0;border-radius:var(--r-xs);border:1.5px solid var(--border);background:none;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;color:var(--t3);transition:all .12s}
+.b-perm{background:#FFF3E0;color:#E65100}
+.pcard-acts{display:flex;gap:5px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
+.ca{flex:1;padding:5px 0;border-radius:var(--r-xs);border:1.5px solid var(--border);background:none;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;cursor:pointer;color:var(--t3);transition:all .12s;min-width:60px}
 .ca.comp.on{background:var(--primary-lt);color:var(--primary);border-color:var(--primary-mid)}
 .ca.incap.on{background:var(--coral-lt);color:var(--coral);border-color:rgba(255,107,107,.3)}
-.ca.comp:hover{color:var(--primary)}.ca.incap:hover{color:var(--coral)}
+.ca.perm.on{background:#FFF3E0;color:#E65100;border-color:rgba(230,81,0,.3)}
+.ca.comp:hover{color:var(--primary)}.ca.incap:hover{color:var(--coral)}.ca.perm:hover{color:#E65100}
 
 /* RIGHT PANEL */
 .right-pnl{display:flex;flex-direction:column;overflow:hidden}
@@ -1993,20 +1995,24 @@ function renderPool(){
           <div class="pc-info">
             <div class="pc-name">${p.nombre}</div>
             <div class="pc-area">${p.area}</div>
-            ${p.specs?.length?`<div class="pc-specs">🔧 ${p.specs.slice(0,3).join(' · ')}${p.specs.length>3?'…':''}</div>`:''}
           </div>
           ${assignMode==='single'?`<span class="pbadge b-libre">Libre</span>`:''}
         </div>
         <div class="pcard-acts" onclick="event.stopPropagation()">
-          <button class="ca comp${p.status==='compensatorio'?' on':''}" onclick="toggleSt(${p.id},'compensatorio')">📅 Compensatorio</button>
-          <button class="ca incap${p.status==='incapacitado'?' on':''}" onclick="toggleSt(${p.id},'incapacitado')">🏥 Incapacitado</button>
+          <button class="ca comp${p.status==='compensatorio'?' on':''}" onclick="toggleSt(${p.id},'compensatorio')">📅 Comp.</button>
+          <button class="ca incap${p.status==='incapacitado'?' on':''}" onclick="toggleSt(${p.id},'incapacitado')">🏥 Incap.</button>
+          <button class="ca perm${p.status==='permiso'?' on':''}" onclick="toggleSt(${p.id},'permiso')">🏖️ Permiso</button>
         </div>
       </div>`;
     });
   }
   if(nd.length){
     h+=`<div class="sec-lbl" style="margin-top:12px">No disponibles — ${nd.length}</div>`;
-    nd.forEach(p=>{const c2=p.status==='compensatorio';h+=`<div class="pcard off"><div class="pc-r"><div class="pc-av" style="background:var(--border2);color:var(--t4)">${ini(p.nombre)}</div><div class="pc-info"><div class="pc-name" style="color:var(--t3)">${p.nombre}</div><div class="pc-area">${p.area}</div></div><span class="pbadge ${c2?'b-comp':'b-incap'}">${c2?'Comp.':'Incap.'}</span></div><div class="pcard-acts"><button class="ca comp${c2?' on':''}" onclick="toggleSt(${p.id},'compensatorio');event.stopPropagation()">📅 Compensatorio</button><button class="ca incap${!c2?' on':''}" onclick="toggleSt(${p.id},'incapacitado');event.stopPropagation()">🏥 Incapacitado</button></div></div>`;});
+    nd.forEach(p=>{
+      const bc=p.status==='compensatorio'?'b-comp':p.status==='permiso'?'b-perm':'b-incap';
+      const bl=p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.';
+      h+=`<div class="pcard off"><div class="pc-r"><div class="pc-av" style="background:var(--border2);color:var(--t4)">${ini(p.nombre)}</div><div class="pc-info"><div class="pc-name" style="color:var(--t3)">${p.nombre}</div><div class="pc-area">${p.area}</div></div><span class="pbadge ${bc}">${bl}</span></div><div class="pcard-acts"><button class="ca comp${p.status==='compensatorio'?' on':''}" onclick="toggleSt(${p.id},'compensatorio');event.stopPropagation()">📅 Comp.</button><button class="ca incap${p.status==='incapacitado'?' on':''}" onclick="toggleSt(${p.id},'incapacitado');event.stopPropagation()">🏥 Incap.</button><button class="ca perm${p.status==='permiso'?' on':''}" onclick="toggleSt(${p.id},'permiso');event.stopPropagation()">🏖️ Permiso</button></div></div>`;
+    });
   }
   el.innerHTML=h;
 }
@@ -2308,7 +2314,6 @@ function renderReport(){
     <div class="kpi k5"><div class="kpi-icon">🔒</div><div class="kpi-val">${nd}</div><div class="kpi-lbl">No disponibles</div><div class="kpi-bar"><div class="kpi-fill" style="width:${total?Math.round(nd/total*100):0}%"></div></div></div>`;
   let h='';
   const noDisp=personal.filter(p=>p.status!=='libre');
-  if(noDisp.length){h+=`<div class="rpt-area"><div class="ra-head ah-otros"><h3>⚠ No disponibles hoy</h3><span style="background:rgba(255,255,255,.2);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px">${noDisp.length}</span></div>`;noDisp.forEach(p=>{h+=`<div class="ri-row"><div class="ri-l"><div class="ri-av">${ini(p.nombre)}</div><div><div class="ri-name">${p.nombre}</div><div class="ri-act">${p.area}</div></div></div><span class="${p.status==='compensatorio'?'badge bc':'badge bi'}">${p.status==='compensatorio'?'📅 Compensatorio':'🏥 Incapacitado'}</span></div>`;});h+=`</div>`;}
   const grp={};asigs.forEach(a=>{if(!grp[a.area])grp[a.area]=[];grp[a.area].push(a);});
   [...AREAS,...Object.keys(grp).filter(k=>!AREAS.includes(k))].forEach(area=>{
     const rows=grp[area];if(!rows?.length)return;
@@ -2324,6 +2329,7 @@ function renderReport(){
     h+=`</div>`;
   });
   if(!asigs.length)h=`<div class="empty"><div class="empty-icon">📊</div><p>No hay asignaciones aún.</p></div>`;
+  if(noDisp.length){const stLabel=p=>p.status==='compensatorio'?'📅 Compensatorio':p.status==='permiso'?'🏖️ Permiso Personal':'🏥 Incapacitado';const stBadge=p=>p.status==='compensatorio'?'badge bc':p.status==='permiso'?'badge' :'badge bi';h+=`<div class="rpt-area"><div class="ra-head ah-otros"><h3>⚠ No disponibles hoy</h3><span style="background:rgba(255,255,255,.2);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px">${noDisp.length}</span></div>`;noDisp.forEach(p=>{h+=`<div class="ri-row"><div class="ri-l"><div class="ri-av">${ini(p.nombre)}</div><div><div class="ri-name">${p.nombre}</div><div class="ri-act">${p.area}</div></div></div><span class="${stBadge(p)}" style="${p.status==='permiso'?'background:#FFF3E0;color:#E65100':''}">${stLabel(p)}</span></div>`;});h+=`</div>`;}
   document.getElementById('rptContent').innerHTML=h;
 }
 function desmarcarR(aid){const a=asigs.find(x=>x.id===aid);if(a){a.done=false;a.horaFin='';a.observaciones='';a.fotos=[];a.estado='pendiente';syncProj(a);renderReport();renderAssigned();chips();}}
@@ -2368,10 +2374,10 @@ function renderPersonal(){
       <div class="card-stats">
         <div class="cs"><div class="cs-val" style="color:${c}">${hist.length}</div><div class="cs-lbl">Actividades</div></div>
         <div class="cs"><div class="cs-val" style="color:var(--mint)">${done}</div><div class="cs-lbl">Cumplidas</div></div>
-        <div class="cs"><div class="cs-val" style="color:${p.status==='libre'?'var(--mint)':p.status==='compensatorio'?'var(--primary)':'var(--coral)'}">${p.status==='libre'?'✓':p.status==='compensatorio'?'📅':'🏥'}</div><div class="cs-lbl">Estado</div></div>
+        <div class="cs"><div class="cs-val" style="color:${p.status==='libre'?'var(--mint)':p.status==='compensatorio'?'var(--primary)':p.status==='permiso'?'#E65100':'var(--coral)'}">${p.status==='libre'?'✓':p.status==='compensatorio'?'📅':p.status==='permiso'?'🏖️':'🏥'}</div><div class="cs-lbl">Estado</div></div>
       </div>
       <div class="card-foot" onclick="event.stopPropagation()">
-        <span class="pbadge ${p.status==='libre'?'b-libre':p.status==='compensatorio'?'b-comp':'b-incap'}" style="padding:3px 10px">${p.status==='libre'?'Disponible':p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</span>
+        <span class="pbadge ${p.status==='libre'?'b-libre':p.status==='compensatorio'?'b-comp':p.status==='permiso'?'b-perm':'b-incap'}" style="padding:3px 10px">${p.status==='libre'?'Disponible':p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</span>
         <div style="margin-left:auto;display:flex;gap:5px"><button class="btn btn-ghost btn-xs" onclick="openPersonModal(${p.id})">✏ Editar</button><button class="btn btn-coral btn-xs" onclick="delPerson(${p.id})">✕</button></div>
       </div>
     </div>`;
@@ -2746,7 +2752,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <table><thead><tr><th class="num">#</th><th>Colaborador</th><th>Actividad del día</th><th>Hora</th><th style="text-align:center">✓</th></tr></thead><tbody>
   ${rows.map((a,i)=>{const pp=personal.find(x=>x.id===a.pid);const sp=pp?.specs?.length?`<div><span class="spec">🔧 ${pp.specs.join(' · ')}</span></div>`:'';return`<tr><td class="num">${i+1}</td><td><div class="nomb">${a.nombre}</div>${sp}</td><td class="act">${a.actividad}</td><td class="hora">${a.hora||'6:30 am'}</td><td style="text-align:center"><span class="cb"></span></td></tr>`;}).join('')}
   </tbody></table>
-  ${noDisp.length?`<div style="margin-top:14px;padding:10px 14px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:10px;font-size:12px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · ')}</div>`:''}
+  ${noDisp.length?`<div style="margin-top:14px;padding:10px 14px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:10px;font-size:12px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · ')}</div>`:''}
   <div class="foot"><span class="ft">Instituto Salvadoreño de Pensiones · Uso interno</span><button class="pbtn np" onclick="window.print()">🖨 Imprimir / PDF</button></div>
   </div></body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();
@@ -2893,6 +2899,7 @@ function buildResumenSheet(date,total,done,pct,noDisp,C){
     ['Sin asignar',personal.filter(p=>p.status==='libre'&&!isAsig(p.id)).length],
     ['Compensatorios',personal.filter(p=>p.status==='compensatorio').length],
     ['Incapacitados',personal.filter(p=>p.status==='incapacitado').length],
+    ['Permisos Personal',personal.filter(p=>p.status==='permiso').length],
     ['Actividades cumplidas',done],
     ['Actividades pendientes',asigs.length-done],
     ['% Completado',pct+'%']
@@ -2929,7 +2936,7 @@ function buildAreaSheet(area,rows,C){
 }
 function buildNDSheet(nd,C){
   let tbl=`<table class="xls-tbl">${xRow(['Colaborador','Área','Motivo'],true)}`;
-  nd.forEach((p,i)=>{tbl+=`<tr style="background:${i%2===0?'#FAFAF9':'#fff'}"><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px">${p.nombre}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px">${p.area}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px;font-weight:700;color:${p.status==='compensatorio'?'#7B68EE':'#FF6B6B'}">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</td></tr>`;});
+  nd.forEach((p,i)=>{tbl+=`<tr style="background:${i%2===0?'#FAFAF9':'#fff'}"><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px">${p.nombre}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px">${p.area}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;font-size:12px;font-weight:700;color:${p.status==='compensatorio'?'#7B68EE':p.status==='permiso'?'#E65100':'#FF6B6B'}">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</td></tr>`;});
   return tbl+'</table>';
 }
 
@@ -2983,7 +2990,7 @@ function buildPlanPreview(date){
       </tr>`;
     });
     html+=`</tbody></table>`;
-    if(noDisp.length&&expSc.n)html+=`<div style="margin:12px;padding:9px 12px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:8px;font-size:11px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · ')}</div>`;
+    if(noDisp.length&&expSc.n)html+=`<div style="margin:12px;padding:9px 12px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:8px;font-size:11px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · ')}</div>`;
     html+=`<div style="margin:12px;padding-top:10px;border-top:1px solid #E8E6E1;display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#AEA9BF">Instituto Salvadoreño de Pensiones · Uso interno</span></div></div>`;
     pages.push(html);
   });
@@ -3027,7 +3034,7 @@ function buildInformePreview(date){
   if(nd.length&&expSc.n){
     html+=`<div style="margin:0 12px 12px;background:#FAFAF9;border:1px solid #E8E6E1;border-radius:8px;overflow:hidden">
       <div style="background:#525252;padding:8px 12px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px">⚠ No disponibles</div>
-      ${nd.map((p,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:${i?'1px solid #E8E6E1':'none'}"><span style="font-size:12px;font-weight:600">${p.nombre}</span><span style="font-size:11px;font-weight:700;color:${p.status==='compensatorio'?'#7B68EE':'#FF6B6B'};background:${p.status==='compensatorio'?'#EEF0FF':'#FFF0F0'};padding:2px 9px;border-radius:20px">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</span></div>`).join('')}
+      ${nd.map((p,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:${i?'1px solid #E8E6E1':'none'}"><span style="font-size:12px;font-weight:600">${p.nombre}</span><span style="font-size:11px;font-weight:700;color:${p.status==='compensatorio'?'#7B68EE':p.status==='permiso'?'#E65100':'#FF6B6B'};background:${p.status==='compensatorio'?'#EEF0FF':p.status==='permiso'?'#FFF3E0':'#FFF0F0'};padding:2px 9px;border-radius:20px">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</span></div>`).join('')}
     </div>`;
   }
 
@@ -3094,7 +3101,7 @@ function buildWordPreview(date){
     html+=`<h3 style="font-size:13px;color:#525252;margin:0 0 8px;font-family:Calibri,sans-serif">⚠ Personal No Disponible</h3>
     <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-family:Calibri,sans-serif;font-size:12px">
       <thead><tr style="background:#525252"><th style="color:#fff;padding:7px 10px;text-align:left">Colaborador</th><th style="color:#fff;padding:7px 10px;text-align:left">Área</th><th style="color:#fff;padding:7px 10px;text-align:left">Motivo</th></tr></thead>
-      <tbody>${noDisp.map((p,i)=>`<tr style="background:${i%2===0?'#FAFAF9':'#fff'}"><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1">${p.nombre}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1">${p.area}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;color:${p.status==='compensatorio'?'#7B68EE':'#FF6B6B'};font-weight:700">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</td></tr>`).join('')}</tbody>
+      <tbody>${noDisp.map((p,i)=>`<tr style="background:${i%2===0?'#FAFAF9':'#fff'}"><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1">${p.nombre}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1">${p.area}</td><td style="padding:7px 10px;border-bottom:1px solid #E8E6E1;color:${p.status==='compensatorio'?'#7B68EE':p.status==='permiso'?'#E65100':'#FF6B6B'};font-weight:700">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</td></tr>`).join('')}</tbody>
     </table>`;
   }
 
@@ -3125,6 +3132,7 @@ function expExcel(){
     ['Sin asignar',personal.filter(p=>p.status==='libre'&&!isAsig(p.id)).length],
     ['Compensatorios',personal.filter(p=>p.status==='compensatorio').length],
     ['Incapacitados',personal.filter(p=>p.status==='incapacitado').length],
+    ['Permisos Personal',personal.filter(p=>p.status==='permiso').length],
     ['Actividades cumplidas',asigs.filter(a=>a.done).length],
     ['Actividades pendientes',asigs.filter(a=>!a.done).length],
     ['% Completado',asigs.length?Math.round(asigs.filter(a=>a.done).length/asigs.length*100)+'%':'0%'],
@@ -3166,7 +3174,7 @@ function expExcel(){
   if(expSc.n){
     const nd=personal.filter(p=>p.status!=='libre');
     if(nd.length){
-      const wsND=XLSX.utils.aoa_to_sheet([['Colaborador','Especialidades','Área','Motivo'],...nd.map(p=>[p.nombre,p.specs?.join(', ')||'',p.area,p.status==='compensatorio'?'Compensatorio':'Incapacitado'])]);
+      const wsND=XLSX.utils.aoa_to_sheet([['Colaborador','Especialidades','Área','Motivo'],...nd.map(p=>[p.nombre,p.specs?.join(', ')||'',p.area,p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'])]);
       wsND['!cols']=[{wch:26},{wch:24},{wch:22},{wch:18}];
       XLSX.utils.book_append_sheet(wb,wsND,'No Disponibles');
     }
@@ -3246,7 +3254,7 @@ function expPDFPlan(){
       st([255,255,255]);ff('bold',9);doc.text('PERSONAL NO DISPONIBLE HOY',18,y+6.2);y+=12;
       doc.autoTable({
         startY:y,head:[['Colaborador','Especialidades','Área','Motivo']],
-        body:nd.map(p=>[p.nombre,p.specs?.join(', ')||'—',p.area,p.status==='compensatorio'?'Compensatorio':'Incapacitado']),
+        body:nd.map(p=>[p.nombre,p.specs?.join(', ')||'—',p.area,p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado']),
         headStyles:{fillColor:[82,82,82],textColor:[255,255,255],fontSize:8,fontStyle:'bold',cellPadding:3.5},
         bodyStyles:{fontSize:8.5,cellPadding:3.5,textColor:C.t1},alternateRowStyles:{fillColor:C.bg},
         margin:{left:14,right:14},tableLineColor:C.brd,tableLineWidth:.25,
@@ -3322,7 +3330,7 @@ function expPDFInforme(){
     if(nd.length){
       chy(14);sf([240,240,240]);doc.setDrawColor(C.brd[0],C.brd[1],C.brd[2]);doc.setLineWidth(.3);doc.roundedRect(14,y,W-28,8,1.5,1.5,'FD');
       st(C.t2);ff('bold',8);doc.text('No disponibles hoy:',18,y+5.5);
-      st(C.t3);ff('normal',7.5);doc.text(nd.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · '),W-14,y+5.5,{align:'right',maxWidth:W*0.55});
+      st(C.t3);ff('normal',7.5);doc.text(nd.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · '),W-14,y+5.5,{align:'right',maxWidth:W*0.55});
       y+=12;
     }
   }
@@ -3412,7 +3420,7 @@ function expWord(){
     body+=`<h3 style="font-size:11pt;color:#525252;margin-bottom:7pt">⚠ Personal No Disponible</h3>
     <table width="100%" style="border-collapse:collapse;font-size:10pt;margin-bottom:16pt">
       <thead><tr style="background:#525252"><th style="color:#fff;padding:6pt 10pt;text-align:left">Colaborador</th><th style="color:#fff;padding:6pt 10pt;text-align:left">Área</th><th style="color:#fff;padding:6pt 10pt;text-align:left">Motivo</th></tr></thead>
-      <tbody>${noDisp.map((p,i)=>`<tr style="background:${i%2===0?'#FAFAF9':'#FFF'}"><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1">${p.nombre}</td><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1">${p.area}</td><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;color:${p.status==='compensatorio'?'#7B68EE':'#FF6B6B'};font-weight:700">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</td></tr>`).join('')}</tbody>
+      <tbody>${noDisp.map((p,i)=>`<tr style="background:${i%2===0?'#FAFAF9':'#FFF'}"><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1">${p.nombre}</td><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1">${p.area}</td><td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;color:${p.status==='compensatorio'?'#7B68EE':p.status==='permiso'?'#E65100':'#FF6B6B'};font-weight:700">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</td></tr>`).join('')}</tbody>
     </table>`;
   }
 
@@ -4155,7 +4163,7 @@ function renderHistorial(){
         </div>
         ${d.nota?`<div style="background:var(--gold-lt);border-left:3px solid var(--gold);padding:8px 14px;font-size:12px;color:#7A4F00"><strong>Nota:</strong> ${d.nota}</div>`:''}
         ${buildDayRows(d.asignaciones)}
-        ${d.noDisponibles?.length?`<div style="padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);font-size:12px;color:var(--t3)"><strong style="color:var(--t2)">No disponibles:</strong> ${d.noDisponibles.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · ')}</div>`:''}
+        ${d.noDisponibles?.length?`<div style="padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);font-size:12px;color:var(--t3)"><strong style="color:var(--t2)">No disponibles:</strong> ${d.noDisponibles.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · ')}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -4506,7 +4514,7 @@ function abrirResumenDia(fecha){
   document.getElementById('rmBody').innerHTML=`
     ${d.nota?`<div style="background:var(--gold-lt);border-left:3px solid var(--gold);padding:9px 14px;margin-bottom:14px;font-size:12.5px;color:#7A4F00;border-radius:0 var(--r-sm) var(--r-sm) 0"><strong>Nota del día:</strong> ${d.nota}</div>`:''}
     <div class="rm-section"><div class="rm-section-title">Detalle por área</div>${buildDayRows(allA)}</div>
-    ${d.noDisponibles?.length?`<div class="rm-section"><div class="rm-section-title">No disponibles</div>${d.noDisponibles.map(p=>`<div class="rm-row"><div class="rm-name">${p.nombre}</div><span class="badge ${p.status==='compensatorio'?'bc':'bi'}">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</span></div>`).join('')}</div>`:''}`;
+    ${d.noDisponibles?.length?`<div class="rm-section"><div class="rm-section-title">No disponibles</div>${d.noDisponibles.map(p=>`<div class="rm-row"><div class="rm-name">${p.nombre}</div><span class="badge ${p.status==='compensatorio'?'bc':p.status==='permiso'?'bt':'bi'}">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</span></div>`).join('')}</div>`:''}`;
   document.getElementById('mResumen').classList.add('on');
   document.body.style.overflow='hidden';
 }
@@ -4675,7 +4683,7 @@ function exportDiarioExcel(){
   const nd=personal.filter(p=>p.status!=='libre');
   if(nd.length){
     const ndData=[['No Disponibles — '+date],[''],['Colaborador','Área','Especialidades','Motivo']];
-    nd.forEach(p=>ndData.push([p.nombre,p.area,p.specs?.join(', ')||'',p.status==='compensatorio'?'Compensatorio':'Incapacitado']));
+    nd.forEach(p=>ndData.push([p.nombre,p.area,p.specs?.join(', ')||'',p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado']));
     const ws3=XLSX.utils.aoa_to_sheet(ndData);
     ws3['!cols']=[{wch:26},{wch:22},{wch:24},{wch:18}];
     XLSX.utils.book_append_sheet(wb,ws3,'No Disponibles');
@@ -4691,6 +4699,7 @@ function exportDiarioExcel(){
     ['Sin asignar',personal.filter(p=>p.status==='libre'&&!isAsig(p.id)).length],
     ['Compensatorios',personal.filter(p=>p.status==='compensatorio').length],
     ['Incapacitados',personal.filter(p=>p.status==='incapacitado').length],
+    ['Permisos Personal',personal.filter(p=>p.status==='permiso').length],
     ['Cumplidas',done],
     ['Pendientes',asigs.length-done],
     ['% Avance',asigs.length?Math.round(done/asigs.length*100)+'%':'0%'],
@@ -5065,7 +5074,7 @@ function abrirHojaColaboradores(){
       +'</tr></thead><tbody>'+rowsHtml+'</tbody></table></div>';
   });
 
-  const noDispSection=noDisp.length?'<div class="no-disp"><strong>\u26a0 No disponibles hoy:</strong> '+noDisp.map(p=>p.nombre+' ('+(p.status==='compensatorio'?'Compensatorio':'Incapacitado')+')').join(' \u00b7 ')+'</div>':'';
+  const noDispSection=noDisp.length?'<div class="no-disp"><strong>\u26a0 No disponibles hoy:</strong> '+noDisp.map(p=>p.nombre+' ('+(p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado')+')').join(' \u00b7 ')+'</div>':'';
   const notaSection=nota?'<div class="nota">\u26a0 <strong>Nota del d\u00eda:</strong> '+nota+'</div>':'';
   const fechaGen2=new Date().toLocaleString('es-SV');
   const totalAsigs=asigs.length;
@@ -5510,7 +5519,7 @@ function exportarExcelModerno() {
     <td style="font-weight:600;color:#1a2a3a">${p.nombre}</td>
     <td style="color:#475569">${p.area}</td>
     <td style="color:#475569">${p.specs?.join(', ') || ''}</td>
-    <td style="text-align:center"><span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${p.status==='compensatorio'?'#FFF8E6':'#FEF0F0'};color:${p.status==='compensatorio'?'#B8820A':'#C0392B'}">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</span></td>
+    <td style="text-align:center"><span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${p.status==='compensatorio'?'#FFF8E6':p.status==='permiso'?'#FFF3E0':'#FEF0F0'};color:${p.status==='compensatorio'?'#B8820A':p.status==='permiso'?'#E65100':'#C0392B'}">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</span></td>
   </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:16px">Sin personal no disponible</td></tr>';
 
   const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -5648,7 +5657,7 @@ function exportarWordSeguimiento() {
           <td style="padding:9px 14px;border:1px solid #DDE6EE;font-weight:600">${p.nombre}</td>
           <td style="padding:9px 14px;border:1px solid #DDE6EE;color:#64748b">${p.area}</td>
           <td style="padding:9px 14px;border:1px solid #DDE6EE;text-align:center">
-            <span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${p.status==='compensatorio'?'#FFF8E6':'#FEF0F0'};color:${p.status==='compensatorio'?'#B8820A':'#C0392B'}">${p.status==='compensatorio'?'Compensatorio':'Incapacitado'}</span>
+            <span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${p.status==='compensatorio'?'#FFF8E6':p.status==='permiso'?'#FFF3E0':'#FEF0F0'};color:${p.status==='compensatorio'?'#B8820A':p.status==='permiso'?'#E65100':'#C0392B'}">${p.status==='compensatorio'?'Compensatorio':p.status==='permiso'?'Permiso Personal':'Incapacitado'}</span>
           </td>
         </tr>`).join('')}
       </table>
@@ -5929,26 +5938,25 @@ async function compartirHojaJPGDirecto() {
     const col = ACOL[area] || '#2C3E50';
     const rows = grp[area].map((a, i) => {
       const pp = personal.find(x => x.id === a.pid);
-      const specs = pp?.specs?.length ? `<div style="font-size:14px;color:#7B68EE;margin-top:2px">${pp.specs.slice(0,2).join(' · ')}</div>` : '';
-      const horaNote = `<div style="font-size:12px;color:#5D7285;margin-top:3px;font-weight:600">⏰ ${a.hora || '6:30 am'}</div>`;
+      const horaNote = `<div style="font-size:14px;color:#5D7285;margin-top:4px;font-weight:600">⏰ ${a.hora || '6:30 am'}</div>`;
       return `<tr style="background:${i%2===0?'#F8FAFC':'#fff'}">
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:24px;color:#9DB2C4;font-weight:700;font-size:14px;text-align:center">${i+1}</td>
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6"><div style="font-weight:700;font-size:17px;color:#0D1B2A">${a.nombre}</div>${horaNote}${specs}</td>
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;font-size:16px;color:#334155">${a.actividad}</td>
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:80px;border-left:2px dashed #DDE6EE"></td>
+        <td style="padding:14px 16px;border-bottom:1px solid #E8EFF6;width:30px;color:#9DB2C4;font-weight:700;font-size:16px;text-align:center">${i+1}</td>
+        <td style="padding:14px 16px;border-bottom:1px solid #E8EFF6"><div style="font-weight:700;font-size:19px;color:#0D1B2A">${a.nombre}</div>${horaNote}</td>
+        <td style="padding:14px 16px;border-bottom:1px solid #E8EFF6;font-size:18px;color:#334155">${a.actividad}</td>
+        <td style="padding:14px 16px;border-bottom:1px solid #E8EFF6;width:90px;border-left:2px dashed #DDE6EE"></td>
       </tr>`;
     }).join('');
-    return `<div style="margin-bottom:18px;border-radius:12px;overflow:hidden;border:2px solid ${col}">
-      <div style="background:${col};padding:12px 18px;display:flex;justify-content:space-between;align-items:center">
-        <span style="color:#fff;font-size:17px;font-weight:800;letter-spacing:.5px">${area}</span>
-        <span style="background:rgba(255,255,255,.22);color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px">${grp[area].length} colaboradores</span>
+    return `<div style="margin-bottom:20px;border-radius:14px;overflow:hidden;border:2px solid ${col}">
+      <div style="background:${col};padding:14px 20px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#fff;font-size:20px;font-weight:800;letter-spacing:.5px">${area}</span>
+        <span style="background:rgba(255,255,255,.22);color:#fff;font-size:15px;font-weight:700;padding:4px 14px;border-radius:20px">${grp[area].length} colaboradores</span>
       </div>
       <table style="width:100%;border-collapse:collapse">
         <thead><tr style="background:${col}12">
-          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">#</th>
-          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Colaborador</th>
-          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Actividad del día</th>
-          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">✓ Firma</th>
+          <th style="padding:11px 16px;font-size:14px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">#</th>
+          <th style="padding:11px 16px;font-size:14px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Colaborador</th>
+          <th style="padding:11px 16px;font-size:14px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Actividad del día</th>
+          <th style="padding:11px 16px;font-size:14px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">✓ Firma</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -5956,25 +5964,26 @@ async function compartirHojaJPGDirecto() {
   }).join('');
 
   const notaHtml = nota ? `<div style="background:#FFF8E6;border-left:4px solid #C8A84B;padding:12px 16px;margin-bottom:16px;border-radius:6px;font-size:15px;color:#7A5A10"><strong>📌 Nota:</strong> ${nota}</div>` : '';
-  const ndHtml = noDisp.length ? `<div style="background:#FEF0F0;border-left:4px solid #D62828;padding:12px 16px;margin-bottom:16px;border-radius:6px;font-size:14px;color:#7A1A1A"><strong>⚠ No disponibles:</strong> ${noDisp.map(p => p.nombre + ' (' + (p.status === 'compensatorio' ? 'Comp.' : 'Incap.') + ')').join(' · ')}</div>` : '';
+  const stLbl = s => s==='compensatorio'?'Comp.':s==='permiso'?'Perm.':'Incap.';
+  const ndHtml = noDisp.length ? `<div style="background:#FEF0F0;border-left:4px solid #D62828;padding:14px 18px;margin-bottom:18px;border-radius:8px;font-size:16px;color:#7A1A1A"><strong>⚠ No disponibles:</strong> ${noDisp.map(p => p.nombre + ' (' + stLbl(p.status) + ')').join(' · ')}</div>` : '';
 
   const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#fff;padding:32px;font-family:Arial,sans-serif;z-index:-1';
+  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:1100px;background:#fff;padding:40px;font-family:Arial,sans-serif;z-index:-1';
   wrapper.innerHTML = `
-    <div style="background:linear-gradient(135deg,#0A1F5C,#1A3580);border-radius:14px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+    <div style="background:linear-gradient(135deg,#0A1F5C,#1A3580);border-radius:16px;padding:28px 34px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">ISP</div>
-        <div style="font-size:14px;color:#C8D8F0;margin-top:4px">Instituto Salvadoreño de Pensiones</div>
-        <div style="font-size:13px;color:#FBC02D;margin-top:2px;font-style:italic">Transformando el presente, garantizamos tu futuro</div>
+        <div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">ISP</div>
+        <div style="font-size:17px;color:#C8D8F0;margin-top:5px">Instituto Salvadoreño de Pensiones</div>
+        <div style="font-size:15px;color:#FBC02D;margin-top:3px;font-style:italic">Transformando el presente, garantizamos tu futuro</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:12px;color:#A0B8D8">Programación del día</div>
-        <div style="font-size:20px;font-weight:800;color:#fff;margin-top:4px;text-transform:capitalize">${dateStr}</div>
-        <div style="font-size:13px;color:#FBC02D;margin-top:4px;font-weight:700">${asigs.length} actividades asignadas</div>
+        <div style="font-size:13px;color:#A0B8D8">Programación del día</div>
+        <div style="font-size:24px;font-weight:800;color:#fff;margin-top:5px;text-transform:capitalize">${dateStr}</div>
+        <div style="font-size:15px;color:#FBC02D;margin-top:5px;font-weight:700">${asigs.length} actividades asignadas</div>
       </div>
     </div>
     ${notaHtml}${ndHtml}${areasHtml}
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid #DDE6EE;display:flex;justify-content:space-between;font-size:12px;color:#94a3b8">
+    <div style="margin-top:20px;padding-top:14px;border-top:1px solid #DDE6EE;display:flex;justify-content:space-between;font-size:14px;color:#94a3b8">
       <span>ISP — Unidad de Mantenimiento · Infraestructura</span>
       <span>Generado: ${new Date().toLocaleString('es-SV')}</span>
     </div>`;
