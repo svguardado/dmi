@@ -227,7 +227,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>ISP — Gestión de Actividades</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -463,7 +463,7 @@ header{
 /* INFORME */
 .rpt-pg{padding:20px 24px;max-width:1020px;margin:0 auto}
 .rpt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
-.rpt-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--primary);letter-spacing:-.3px;font-weight:400;font-style:italic}
+.rpt-title{font-family:'DM Sans',sans-serif;font-size:24px;color:var(--primary);letter-spacing:-.5px;font-weight:800}
 .rpt-title span{color:var(--primary);font-style:normal}
 .rpt-sub{font-size:12px;color:var(--t3);margin-top:3px}
 .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
@@ -482,7 +482,7 @@ header{
 .k5::after{background:linear-gradient(90deg,var(--gold),var(--gold-mid))}
 .kpi-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:9px}
 .k1 .kpi-icon{background:var(--primary-lt);color:var(--primary)}.k2 .kpi-icon{background:var(--teal-lt)}.k3 .kpi-icon{background:var(--mint-lt)}.k4 .kpi-icon{background:var(--coral-lt)}.k5 .kpi-icon{background:var(--gold-lt)}
-.kpi-val{font-family:'DM Serif Display',serif;font-size:32px;line-height:1;margin-bottom:3px;font-weight:400}
+.kpi-val{font-family:'DM Sans',sans-serif;font-size:32px;line-height:1;margin-bottom:3px;font-weight:800}
 .k1 .kpi-val{color:var(--primary)}.k2 .kpi-val{color:var(--teal)}.k3 .kpi-val{color:var(--mint)}.k4 .kpi-val{color:var(--coral)}.k5 .kpi-val{color:var(--gold)}
 .kpi-lbl{font-size:11px;font-weight:600;color:var(--t3)}
 .kpi-bar{height:4px;background:var(--border);border-radius:20px;margin-top:12px;overflow:hidden}
@@ -530,7 +530,7 @@ header{
 .card-stats{display:flex;border-top:1px solid var(--border)}
 .cs{flex:1;padding:10px;text-align:center}
 .cs:not(:last-child){border-right:1px solid var(--border)}
-.cs-val{font-family:'DM Serif Display',serif;font-size:20px;line-height:1;margin-bottom:2px;font-weight:400}
+.cs-val{font-family:'DM Sans',sans-serif;font-size:20px;line-height:1;margin-bottom:2px;font-weight:700}
 .cs-lbl{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
 .card-foot{display:flex;align-items:center;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface2)}
 .proj-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
@@ -566,7 +566,7 @@ header{
 .modal{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--sh4);animation:mu .2s cubic-bezier(.4,0,.2,1)}
 @keyframes mu{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 .mw-sm{width:460px;max-width:96vw}.mw-md{width:540px;max-width:96vw}.mw-lg{width:640px;max-width:96vw}
-.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--t1);margin-bottom:3px;font-weight:400}
+.modal h3{font-family:'DM Sans',sans-serif;font-size:20px;color:var(--t1);margin-bottom:3px;font-weight:700}
 .modal-sub{font-size:12px;color:var(--t3);margin-bottom:16px}
 .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
 
@@ -656,7 +656,7 @@ header{
   padding:16px 22px;border-bottom:1px solid var(--border);
   flex-shrink:0;background:var(--white);
 }
-.prev-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--t1);font-weight:400}
+.prev-title{font-family:'DM Sans',sans-serif;font-size:18px;color:var(--t1);font-weight:700}
 .prev-sub{font-size:12px;color:var(--t3);margin-top:2px}
 .prev-actions{display:flex;gap:8px;align-items:center}
 .prev-body{
@@ -1007,7 +1007,7 @@ header{
 .hd-stats{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2)}
 .hd-stat{flex:1;padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
 .hd-stat:last-child{border-right:none}
-.hd-stat-v{font-family:'DM Serif Display',serif;font-size:20px;line-height:1;font-weight:400}
+.hd-stat-v{font-family:'DM Sans',sans-serif;font-size:20px;line-height:1;font-weight:700}
 .hd-stat-l{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 
 /* ══ RESUMEN MODAL ══ */
@@ -1015,7 +1015,7 @@ header{
 .rm-head{padding:20px 24px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi{background:var(--surface2);border-radius:var(--r-sm);padding:12px;text-align:center}
-.rm-kpi-v{font-family:'DM Serif Display',serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:400}
+.rm-kpi-v{font-family:'DM Sans',sans-serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:800}
 .rm-kpi-l{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
 .rm-body{flex:1;overflow-y:auto;padding:16px 24px}
 .rm-section{margin-bottom:18px}
@@ -1368,6 +1368,8 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <div class="std-tb">
         <button class="btn btn-primary" onclick="openPersonModal()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Agregar colaborador</button>
         <input class="std-search" id="persSearch" placeholder="Buscar colaborador…" oninput="renderPersonal()">
+        <button class="btn btn-ghost btn-xs" id="btnPersSelMode" onclick="togglePersSelMode()">☑ Seleccionar</button>
+        <button class="btn btn-mint btn-xs" id="btnLiberarSel" onclick="liberarSeleccionados()" style="display:none">✓ Liberar (<span id="persSelCount">0</span>)</button>
       </div>
       <div class="std-grid" id="persGrid"></div>
     </div>
@@ -1605,7 +1607,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
       <svg width="22" height="19" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
       <div>
-        <div style="font-family:'DM Serif Display',serif;font-size:19px;color:var(--t1);font-weight:400">Guardar en Google Drive</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:19px;color:var(--t1);font-weight:700">Guardar en Google Drive</div>
         <div style="font-size:12px;color:var(--t3);margin-top:1px" id="driveSubtitle">Sube tu archivo directo a tu Drive</div>
       </div>
     </div>
@@ -1678,7 +1680,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <div class="hist-pg">
     <div class="hist-tb">
       <div>
-        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);font-weight:400">Historial de Actividades</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);font-weight:700">Historial de Actividades</div>
         <div style="font-size:12px;color:var(--t3);margin-top:2px">Registro de todos los días cerrados — se guarda automáticamente en este dispositivo</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
@@ -1705,7 +1707,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <div class="seg-pg">
     <div class="seg-tb">
       <div>
-        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);font-weight:400">Seguimiento Diario</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);font-weight:700">Seguimiento Diario</div>
         <div style="font-size:12px;color:var(--t3);margin-top:2px">Registra avances, fotos de evidencia y genera reporte Word para el día</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
@@ -1785,7 +1787,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="rm-head">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--t1);font-weight:400" id="rmTitle">Resumen General</div>
+          <div style="font-family:'DM Sans',sans-serif;font-size:20px;color:var(--t1);font-weight:700" id="rmTitle">Resumen General</div>
           <div style="font-size:12px;color:var(--t3);margin-top:2px" id="rmSub">Basado en el historial guardado</div>
         </div>
         <div style="display:flex;gap:7px">
@@ -2135,6 +2137,8 @@ function asignar(){
 /* ═══ ASSIGNED LIST ═══ */
 let selMode=false;
 let selIds=new Set();
+let persSelMode=false;
+let persSelIds=new Set();
 
 function toggleSelMode(){
   selMode=!selMode;
@@ -2172,6 +2176,43 @@ function borrarSeleccionados(){
   document.getElementById('btnDelSel').style.display='none';
   renderPool();renderAssigned();chips();saveMemory();
   toast(`✓ Asignaciones eliminadas`);
+}
+
+function togglePersSelMode(){
+  persSelMode=!persSelMode;
+  persSelIds.clear();
+  const btn=document.getElementById('btnPersSelMode');
+  const libBtn=document.getElementById('btnLiberarSel');
+  if(btn){btn.textContent=persSelMode?'✕ Cancelar':'☑ Seleccionar';btn.style.background=persSelMode?'var(--gold-lt)':'';btn.style.color=persSelMode?'var(--gold)':'';}
+  if(libBtn) libBtn.style.display='none';
+  document.getElementById('persSelCount').textContent='0';
+  renderPersonal();
+}
+
+function togglePersSelId(pid){
+  if(persSelIds.has(pid)) persSelIds.delete(pid); else persSelIds.add(pid);
+  const count=persSelIds.size;
+  document.getElementById('persSelCount').textContent=count;
+  const libBtn=document.getElementById('btnLiberarSel');
+  if(libBtn) libBtn.style.display=count?'':'none';
+  const card=document.querySelector(`.pers-card[data-pid="${pid}"]`);
+  if(card) card.style.outline=persSelIds.has(pid)?'2px solid var(--mint)':'';
+}
+
+function liberarSeleccionados(){
+  if(!persSelIds.size){toast('Selecciona al menos un colaborador','warn');return;}
+  const names=personal.filter(p=>persSelIds.has(p.id)&&p.status!=='libre').map(p=>p.nombre.split(' ')[0]).join(', ');
+  const nd=personal.filter(p=>persSelIds.has(p.id)&&p.status!=='libre').length;
+  if(!nd){toast('Los seleccionados ya están libres','warn');return;}
+  if(!confirm(`¿Liberar a ${nd} colaborador${nd!==1?'es':''}?\n${names}`)) return;
+  personal.forEach(p=>{if(persSelIds.has(p.id)) p.status='libre';});
+  persSelIds.clear();
+  persSelMode=false;
+  const btn=document.getElementById('btnPersSelMode');
+  if(btn){btn.textContent='☑ Seleccionar';btn.style.background='';btn.style.color='';}
+  document.getElementById('btnLiberarSel').style.display='none';
+  renderPersonal();renderPool();chips();saveMemory();
+  toast('✓ Colaboradores liberados');
 }
 
 function renderAssigned(){
@@ -2314,7 +2355,12 @@ function renderPersonal(){
   const list=personal.filter(p=>p.nombre.toLowerCase().includes(q)||p.area.toLowerCase().includes(q));
   document.getElementById('persGrid').innerHTML=list.map(p=>{
     const hist=asigs.filter(a=>a.pid===p.id);const done=hist.filter(a=>a.done).length;const c=p.color||'#7B68EE';
-    return `<div class="card" onclick="showEmpDet(${p.id})">
+    const isSel=persSelIds.has(p.id);
+    const selOutline=isSel?'outline:2px solid var(--mint);outline-offset:2px;':'';
+    const clickFn=persSelMode?`togglePersSelId(${p.id})`:`showEmpDet(${p.id})`;
+    const checkboxHtml=persSelMode?`<div style="position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:6px;background:${isSel?'var(--mint)':'var(--border)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700">${isSel?'✓':''}</div>`:'';
+    return `<div class="card pers-card" data-pid="${p.id}" style="position:relative;${selOutline}cursor:${persSelMode?'pointer':'default'}" onclick="${clickFn}">
+      ${checkboxHtml}
       <div class="card-top">
         <div class="card-av-row"><div class="card-av" style="background:${c}">${ini(p.nombre)}</div><div><div class="card-name">${p.nombre}</div><div class="card-sub">📍 ${p.area}</div></div></div>
         ${p.specs?.length?`<div class="spec-chips">${p.specs.map(s=>`<span class="spec-chip">🔧 ${s}</span>`).join('')}</div>`:`<div style="font-size:11px;color:var(--t4);margin-bottom:9px">Sin especialidades</div>`}
@@ -2365,17 +2411,17 @@ function showEmpDet(pid){
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:14px">
         <div style="width:52px;height:52px;border-radius:14px;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0">${ini(p.nombre)}</div>
-        <div><div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);font-weight:400">${p.nombre}</div>
+        <div><div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);font-weight:700">${p.nombre}</div>
         <div style="font-size:13px;color:var(--t3);margin-top:2px">📍 ${p.area}</div>
         ${p.specs?.length?`<div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap">${p.specs.map(s=>`<span class="spec-chip">🔧 ${s}</span>`).join('')}</div>`:''}</div></div>
-      <div style="text-align:right"><div style="font-family:'DM Serif Display',serif;font-size:36px;color:${c};line-height:1">${pct}%</div><div style="font-size:11px;color:var(--t3)">cumplimiento</div><div style="font-size:12px;color:var(--t2);margin-top:4px"><strong>${doneH}</strong> / ${hist.length}</div></div>
+      <div style="text-align:right"><div style="font-family:'DM Sans',sans-serif;font-size:36px;color:${c};line-height:1">${pct}%</div><div style="font-size:11px;color:var(--t3)">cumplimiento</div><div style="font-size:12px;color:var(--t2);margin-top:4px"><strong>${doneH}</strong> / ${hist.length}</div></div>
     </div></div>
   <div style="padding:18px 24px">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
-      ${[['Total',hist.length,c],['Cumplidas',doneH,'var(--mint)'],['Pendientes',hist.length-doneH,'var(--coral)'],['Proyectos',projs.length,'var(--primary)']].map(([l,v,col3])=>`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;box-shadow:var(--sh1)"><div style="font-family:'DM Serif Display',serif;font-size:26px;color:${col3};font-weight:400">${v}</div><div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${l}</div></div>`).join('')}
+      ${[['Total',hist.length,c],['Cumplidas',doneH,'var(--mint)'],['Pendientes',hist.length-doneH,'var(--coral)'],['Proyectos',projs.length,'var(--primary)']].map(([l,v,col3])=>`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;box-shadow:var(--sh1)"><div style="font-family:'DM Sans',sans-serif;font-size:26px;color:${col3};font-weight:700">${v}</div><div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${l}</div></div>`).join('')}
     </div>
     ${projs.length?`<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Proyectos</div><div style="display:flex;gap:6px;flex-wrap:wrap">${projs.map(pr=>`<span onclick="showPg('proyectos');setTimeout(()=>showProjDet(${pr.id}),100)" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:${pr.color}18;color:${pr.color};border:1px solid ${pr.color}35;cursor:pointer">🏗️ ${pr.nombre}</span>`).join('')}</div></div>`:''}
-    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--t1);margin-bottom:12px;font-weight:400">Historial de actividades</div>
+    <div style="font-family:'DM Sans',sans-serif;font-size:18px;color:var(--t1);margin-bottom:12px;font-weight:700">Historial de actividades</div>
     ${histH}</div>`;
 }
 
@@ -2479,7 +2525,7 @@ function showProjDet(id){
     <button class="btn btn-ghost btn-sm" onclick="projLV();renderProjects()" style="margin-bottom:12px">← Volver</button>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
-        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--t1);display:flex;align-items:center;gap:10px;font-weight:400"><span style="width:12px;height:12px;border-radius:50%;background:${p.color};display:inline-block"></span>${p.nombre}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);display:flex;align-items:center;gap:10px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;background:${p.color};display:inline-block"></span>${p.nombre}</div>
         ${p.descripcion?`<div style="font-size:13px;color:var(--t3);margin-top:5px;max-width:560px;line-height:1.5">${p.descripcion}</div>`:''}
         <div class="proj-meta" style="margin-top:9px">
           <span class="proj-tag pt-area">📍 ${p.area}</span>
@@ -2489,9 +2535,9 @@ function showProjDet(id){
         </div>
         ${people.length?`<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center"><span style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px">Equipo:</span>${people.map(emp=>`<span onclick="showPg('personal');setTimeout(()=>showEmpDet(${emp.id}),100)" style="font-size:12px;font-weight:600;padding:3px 11px;border-radius:20px;background:${emp.color}18;color:${emp.color};border:1px solid ${emp.color}35;cursor:pointer">${emp.nombre.split(' ')[0]}</span>`).join('')}</div>`:''}
       </div>
-      <div style="text-align:right"><div style="font-family:'DM Serif Display',serif;font-size:38px;color:${p.color};line-height:1;font-weight:400">${pct}%</div><div style="font-size:11px;color:var(--t3)">completado</div><div style="font-size:12px;color:var(--t2);margin-top:5px"><strong>${dA}</strong> / ${tA}</div><div style="width:120px;height:5px;background:var(--border);border-radius:20px;margin-top:8px;overflow:hidden;margin-left:auto"><div style="height:100%;width:${pct}%;background:${p.color};border-radius:20px"></div></div></div>
+      <div style="text-align:right"><div style="font-family:'DM Sans',sans-serif;font-size:38px;color:${p.color};line-height:1;font-weight:800">${pct}%</div><div style="font-size:11px;color:var(--t3)">completado</div><div style="font-size:12px;color:var(--t2);margin-top:5px"><strong>${dA}</strong> / ${tA}</div><div style="width:120px;height:5px;background:var(--border);border-radius:20px;margin-top:8px;overflow:hidden;margin-left:auto"><div style="height:100%;width:${pct}%;background:${p.color};border-radius:20px"></div></div></div>
     </div></div>
-  <div style="padding:18px 24px"><div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--t1);margin-bottom:12px;font-weight:400">Historial</div>${histH}</div>`;
+  <div style="padding:18px 24px"><div style="font-family:'DM Sans',sans-serif;font-size:18px;color:var(--t1);margin-bottom:12px;font-weight:700">Historial</div>${histH}</div>`;
 }
 function openProjModal(id){
   editProjId=id||null;
@@ -2545,7 +2591,7 @@ function abrirHoja(area){
   const noDisp=personal.filter(p=>p.status!=='libre');
   const col=ACOL[area]||'#525252';
   const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ISP — ${area}</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'DM Sans',sans-serif;background:#fff;color:#1A1A2E;font-size:14px}
@@ -2553,7 +2599,7 @@ function abrirHoja(area){
   .hdr{background:${col};border-radius:14px;padding:22px 24px;margin-bottom:20px;color:#fff}
   .hdr-r{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
   .logo{background:rgba(255,255,255,.2);border-radius:8px;padding:4px 12px;font-weight:800;font-size:13px}
-  .area-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;margin-bottom:4px;font-weight:400}
+  .area-n{font-family:'DM Sans',sans-serif;font-size:26px;line-height:1;margin-bottom:4px;font-weight:700}
   .nota{background:#FFF8E6;border:1px solid #F5C842;border-left:3px solid #F5A623;border-radius:0 8px 8px 0;padding:9px 13px;margin-bottom:18px;font-size:12.5px;color:#7A4F00;line-height:1.5}
   table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid #E8E6E1}
   thead{background:${col}}th{color:#fff;padding:11px 14px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
@@ -2615,7 +2661,7 @@ function abrirHoja(area){
 .hd-stats{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2)}
 .hd-stat{flex:1;padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
 .hd-stat:last-child{border-right:none}
-.hd-stat-v{font-family:'DM Serif Display',serif;font-size:20px;line-height:1;font-weight:400}
+.hd-stat-v{font-family:'DM Sans',sans-serif;font-size:20px;line-height:1;font-weight:700}
 .hd-stat-l{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 
 /* ══ RESUMEN MODAL ══ */
@@ -2623,7 +2669,7 @@ function abrirHoja(area){
 .rm-head{padding:20px 24px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi{background:var(--surface2);border-radius:var(--r-sm);padding:12px;text-align:center}
-.rm-kpi-v{font-family:'DM Serif Display',serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:400}
+.rm-kpi-v{font-family:'DM Sans',sans-serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:800}
 .rm-kpi-l{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
 .rm-body{flex:1;overflow-y:auto;padding:16px 24px}
 .rm-section{margin-bottom:18px}
@@ -2911,7 +2957,7 @@ function buildPlanPreview(date){
           <span style="background:rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700">ISP</span>
           <span style="font-size:12px;opacity:.8;font-weight:600">${date}</span>
         </div>
-        <div style="font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:3px">${area}</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;margin-bottom:3px">${area}</div>
         <div style="font-size:11px;opacity:.75">${ds}</div>
       </div>
       <div style="background:#FFF8E6;border-left:3px solid #F5A623;padding:8px 14px;font-size:11.5px;color:#7A4F00;line-height:1.5">
@@ -2966,7 +3012,7 @@ function buildInformePreview(date){
         <div style="padding:14px 10px;text-align:center;border-right:1px solid #E8E6E1;position:relative;overflow:hidden">
           <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${c}"></div>
           <div style="font-size:11px;margin-bottom:5px">${ic}</div>
-          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:${c};line-height:1;font-weight:400">${v}</div>
+          <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:${c};line-height:1;font-weight:700">${v}</div>
           <div style="font-size:9.5px;color:#6E6B80;font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.5px">${l}</div>
         </div>`).join('')}
     </div>
@@ -3450,7 +3496,7 @@ function expWord(){
 .hd-stats{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2)}
 .hd-stat{flex:1;padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
 .hd-stat:last-child{border-right:none}
-.hd-stat-v{font-family:'DM Serif Display',serif;font-size:20px;line-height:1;font-weight:400}
+.hd-stat-v{font-family:'DM Sans',sans-serif;font-size:20px;line-height:1;font-weight:700}
 .hd-stat-l{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 
 /* ══ RESUMEN MODAL ══ */
@@ -3458,7 +3504,7 @@ function expWord(){
 .rm-head{padding:20px 24px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
 .rm-kpi{background:var(--surface2);border-radius:var(--r-sm);padding:12px;text-align:center}
-.rm-kpi-v{font-family:'DM Serif Display',serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:400}
+.rm-kpi-v{font-family:'DM Sans',sans-serif;font-size:24px;line-height:1;margin-bottom:3px;font-weight:800}
 .rm-kpi-l{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px}
 .rm-body{flex:1;overflow-y:auto;padding:16px 24px}
 .rm-section{margin-bottom:18px}
@@ -4478,15 +4524,15 @@ function expResumenPDF(){
   const date=document.getElementById('globalDate').value;
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'DM Sans',sans-serif;padding:32px;color:#1A1A2E;font-size:13px;line-height:1.55}
-    h1{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;color:#7B68EE;margin-bottom:4px}
+    h1{font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;color:#7B68EE;margin-bottom:4px}
     .sub{font-size:12px;color:#6E6B80;margin-bottom:20px}
     .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
     .kpi-box{background:#FAFAF9;border:1px solid #E8E6E1;border-radius:10px;padding:12px;text-align:center}
-    .kpi-v{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;margin-bottom:3px}
+    .kpi-v{font-family:'DM Sans',sans-serif;font-size:26px;line-height:1;margin-bottom:3px}
     .kpi-l{font-size:9.5px;font-weight:700;color:#6E6B80;text-transform:uppercase;letter-spacing:.5px}
     .sec-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#6E6B80;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #E8E6E1}
     .rm-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #E8E6E1;font-size:12px}
@@ -4907,14 +4953,14 @@ function expInformePeriodo(tipo){
   const pctColor=_pctColor(pctGlobal);
 
   const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ISP \u2014 '+titulo+'</title>'
-    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">'
+    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
     +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'DM Sans\',sans-serif;background:#F0F4F8;color:#1A1A2E;font-size:13px;line-height:1.55}.pg{max-width:900px;margin:0 auto;padding:28px 24px}'
     +'.hdr{background:linear-gradient(135deg,#003F87,#0056B8);border-radius:14px;padding:24px;margin-bottom:20px;color:#fff;border-bottom:3px solid #C8A84B}'
     +'.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.logo{background:rgba(255,255,255,.2);border-radius:8px;padding:4px 12px;font-weight:800;font-size:13px;border-bottom:2px solid #C8A84B}'
-    +'.hdr-title{font-family:\'DM Serif Display\',serif;font-size:28px;line-height:1;margin-bottom:4px;font-weight:400}.hdr-sub{font-size:12px;opacity:.8}'
+    +'.hdr-title{font-family:\'DM Sans\',sans-serif;font-size:28px;line-height:1;margin-bottom:4px;font-weight:800}.hdr-sub{font-size:12px;opacity:.8}'
     +'.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}'
     +'.kpi{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,63,135,.08);border-top:3px solid transparent}'
-    +'.kpi-v{font-family:\'DM Serif Display\',serif;font-size:30px;line-height:1;margin-bottom:4px;font-weight:400}.kpi-l{font-size:10.5px;font-weight:700;color:#5D7285;text-transform:uppercase;letter-spacing:.5px}'
+    +'.kpi-v{font-family:\'DM Sans\',sans-serif;font-size:30px;line-height:1;margin-bottom:4px;font-weight:800}.kpi-l{font-size:10.5px;font-weight:700;color:#5D7285;text-transform:uppercase;letter-spacing:.5px}'
     +'.section{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,63,135,.07)}'
     +'.sec-head{background:#003F87;padding:12px 16px;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}'
     +'table{width:100%;border-collapse:collapse}th{background:#F7FAFC;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:#5D7285;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #DDE6EE}'
@@ -5028,7 +5074,7 @@ function abrirHojaColaboradores(){
   const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
     +'<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">'
     +'<title>ISP \u2014 Actividades '+date+'</title>'
-    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">'
+    +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
     +'<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
     +'body{font-family:\'DM Sans\',sans-serif;background:#fff;color:#0D1B2A;font-size:13px;line-height:1.5}'
@@ -5036,7 +5082,7 @@ function abrirHojaColaboradores(){
     +'.hdr{background:#003F87;border-radius:12px;padding:16px 20px;margin-bottom:14px;color:#fff;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #C8A84B}'
     +'.hdr-l{display:flex;align-items:center;gap:12px}'
     +'.logo{background:rgba(255,255,255,.2);border-radius:8px;padding:5px 12px;font-weight:800;font-size:14px;border-bottom:2px solid #C8A84B;flex-shrink:0}'
-    +'.hdr-title{font-family:\'DM Serif Display\',serif;font-size:18px;line-height:1.2;font-weight:400}'
+    +'.hdr-title{font-family:\'DM Sans\',sans-serif;font-size:18px;line-height:1.2;font-weight:700}'
     +'.hdr-sub{font-size:11px;opacity:.72;margin-top:2px}'
     +'.hdr-date{background:rgba(255,255,255,.15);border-radius:8px;padding:7px 12px;text-align:center;flex-shrink:0}'
     +'.hdr-date-l{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.8px}'
@@ -5884,11 +5930,11 @@ async function compartirHojaJPGDirecto() {
     const rows = grp[area].map((a, i) => {
       const pp = personal.find(x => x.id === a.pid);
       const specs = pp?.specs?.length ? `<div style="font-size:14px;color:#7B68EE;margin-top:2px">${pp.specs.slice(0,2).join(' · ')}</div>` : '';
+      const horaNote = `<div style="font-size:12px;color:#5D7285;margin-top:3px;font-weight:600">⏰ ${a.hora || '6:30 am'}</div>`;
       return `<tr style="background:${i%2===0?'#F8FAFC':'#fff'}">
         <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:24px;color:#9DB2C4;font-weight:700;font-size:14px;text-align:center">${i+1}</td>
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6"><div style="font-weight:700;font-size:17px;color:#0D1B2A">${a.nombre}</div>${specs}</td>
+        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6"><div style="font-weight:700;font-size:17px;color:#0D1B2A">${a.nombre}</div>${horaNote}${specs}</td>
         <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;font-size:16px;color:#334155">${a.actividad}</td>
-        <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;font-size:15px;font-weight:700;color:#5D7285;text-align:center;white-space:nowrap">${a.hora || '6:30 am'}</td>
         <td style="padding:12px 14px;border-bottom:1px solid #E8EFF6;width:80px;border-left:2px dashed #DDE6EE"></td>
       </tr>`;
     }).join('');
@@ -5902,7 +5948,6 @@ async function compartirHojaJPGDirecto() {
           <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">#</th>
           <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Colaborador</th>
           <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:left;border-bottom:2px solid ${col}30">Actividad del día</th>
-          <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">Hora</th>
           <th style="padding:10px 14px;font-size:13px;font-weight:700;color:${col};text-align:center;border-bottom:2px solid ${col}30">✓ Firma</th>
         </tr></thead>
         <tbody>${rows}</tbody>
@@ -5936,22 +5981,28 @@ async function compartirHojaJPGDirecto() {
   document.body.appendChild(wrapper);
 
   try {
-    const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, backgroundColor: '#ffffff', allowTaint: true });
+    const canvas = await html2canvas(wrapper, { scale: 3, useCORS: true, backgroundColor: '#ffffff', allowTaint: true });
     document.body.removeChild(wrapper);
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
     const file = new File([blob], `ISP_Programacion_${date}.jpg`, { type: 'image/jpeg' });
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'ISP — Programación ' + dateStr });
-      toast('✓ Imagen lista para compartir');
-    } else {
-      // Fallback: download
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/jpeg', 0.92);
-      a.download = `ISP_Programacion_${date}.jpg`;
-      a.click();
-      toast('✓ Imagen descargada — ábrela desde Descargas y comparte por WhatsApp');
+    if (navigator.share) {
+      try {
+        await navigator.share({ files: [file], title: 'ISP — Programación ' + dateStr });
+        toast('✓ Imagen compartida');
+        return;
+      } catch (shareErr) {
+        if (shareErr.name === 'AbortError') return;
+        // fall through to download
+      }
     }
+    // Fallback: download
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ISP_Programacion_${date}.jpg`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('✓ Imagen descargada — ábrela desde Descargas y comparte por WhatsApp');
   } catch (e) {
     if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
     if (e.name !== 'AbortError') toast('Error: ' + e.message, 'err');
