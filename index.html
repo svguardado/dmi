@@ -1129,16 +1129,27 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <header>
   <div class="hd-left">
     <div class="hd-logo" title="Instituto Salvadoreño de Pensiones">
-      <svg viewBox="0 0 200 155" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="ispCurve" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="ispArc" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#E94560"/>
-            <stop offset="50%" stop-color="#F58634"/>
+            <stop offset="40%" stop-color="#F58634"/>
             <stop offset="100%" stop-color="#FBC02D"/>
           </linearGradient>
+          <linearGradient id="ispArc2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FBC02D"/>
+            <stop offset="60%" stop-color="#F58634"/>
+            <stop offset="100%" stop-color="#E94560"/>
+          </linearGradient>
         </defs>
-        <path d="M 45 28 Q 100 -4 155 28" stroke="url(#ispCurve)" stroke-width="15" stroke-linecap="round" fill="none"/>
-        <text x="100" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="95" fill="#FFFFFF" letter-spacing="-2">ISP</text>
+        <!-- outer arc -->
+        <path d="M 30 40 Q 100 -10 170 40" stroke="url(#ispArc)" stroke-width="12" stroke-linecap="round" fill="none"/>
+        <!-- inner arc -->
+        <path d="M 50 55 Q 100 15 150 55" stroke="url(#ispArc2)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".7"/>
+        <!-- ISP text -->
+        <text x="100" y="128" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="90" fill="#FFFFFF" letter-spacing="-1">ISP</text>
+        <!-- thin underline in gold -->
+        <line x1="38" y1="140" x2="162" y2="140" stroke="#C8A84B" stroke-width="3" stroke-linecap="round"/>
       </svg>
     </div>
     <div>
@@ -1275,6 +1286,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
             <button class="btn btn-coral btn-xs" id="btnDelSel" onclick="borrarSeleccionados()" style="display:none">🗑 Borrar (<span id="selCount">0</span>)</button>
             <button class="btn btn-gold btn-xs" onclick="abrirCompartir()">📤 Compartir</button>
             <button class="btn btn-ghost btn-xs" onclick="exportDiarioExcel()" title="Descargar cuadro de actividades en Excel">📊 Excel</button>
+            <button class="btn btn-ghost btn-xs" onclick="nuevoDia()" title="Limpia la programación para empezar un nuevo día">🔄 Nuevo día</button>
             <button class="save-day-btn" onclick="cerrarDia()" id="btnCerrarDia" title="Guarda la programación de hoy en el historial">💾 Cerrar día</button>
           </div>
         </div>
@@ -1310,6 +1322,8 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap">
         <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
+        <button class="btn btn-ghost btn-sm" onclick="expPDFInforme()" title="PDF con fotos, KPIs y observaciones">📄 PDF con fotos</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarWordSeguimiento()" title="Word editable con fotos y notas">📝 Word con fotos</button>
         <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Imprimir</button>
         <button class="btn btn-primary btn-sm" onclick="abrirExport()">⬇ Exportar</button>
       </div>
@@ -1808,6 +1822,27 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <button class="lightbox-close">✕</button>
   <img id="lbImg" src="" alt="">
 </div>
+
+<!-- Modal: imagen compartir WhatsApp -->
+<div class="modal-bg" id="mImgShare" style="z-index:600;flex-direction:column;padding:0">
+  <div style="background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:600px;overflow:hidden;max-height:92vh;display:flex;flex-direction:column;margin-top:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--t1)">Programación del día</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">Presiona compartir o guarda la imagen</div>
+      </div>
+      <button onclick="cerrarMImgShare()" style="background:var(--surface2);border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px;background:var(--canvas)">
+      <img id="mImgShareImg" src="" style="width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);display:block">
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px">
+      <button onclick="compartirDesdeModal()" class="btn btn-primary" style="flex:1;padding:14px;font-size:15px">📤 Compartir por WhatsApp</button>
+      <button onclick="descargarDesdeModal()" class="btn btn-ghost" style="padding:14px;font-size:15px">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2077,7 +2112,7 @@ function selP(pid){
   selPid=pid;document.getElementById('fArea').value=p.area;renderQuickActs();
   const c=p.color||'#003F87';
   document.getElementById('selBox').className='sel-box filled';
-  document.getElementById('selBox').innerHTML=`<div class="sel-filled"><div class="sel-av" style="background:${c}">${ini(p.nombre)}</div><div><div class="sel-name">${p.nombre}</div><div class="sel-sub">${p.area}</div>${p.specs?.length?`<div class="sel-spec">🔧 ${p.specs.join(' · ')}</div>`:''}</div></div><button class="sel-clear" onclick="clearSel()">✕</button>`;
+  document.getElementById('selBox').innerHTML=`<div class="sel-filled"><div class="sel-av" style="background:${c}">${ini(p.nombre)}</div><div><div class="sel-name">${p.nombre}</div><div class="sel-sub">${p.area}</div></div></div><button class="sel-clear" onclick="clearSel()">✕</button>`;
   document.getElementById('btnAsign').disabled=false;document.getElementById('fHint').textContent='';renderPool();
   // Auto-collapse pool on mobile after selection
   if(window.innerWidth<768){const pl=document.getElementById('poolList');const arrow=document.getElementById('poolArrow');if(pl&&arrow){pl.style.display='none';arrow.style.transform='rotate(-90deg)';}}
@@ -2237,7 +2272,7 @@ function renderAssigned(){
       const proj=a.proyectoId?proyectos.find(x=>x.id==a.proyectoId):null;
       const pt=proj?`<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:${proj.color}18;color:${proj.color};border:1px solid ${proj.color}35;display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:${proj.color};display:inline-block"></span>${proj.nombre}</span>`:'';
       const pp=personal.find(x=>x.id===a.pid);
-      const st=pp?.specs?.length?`<span class="a-spec-tag">${pp.specs.slice(0,2).join(', ')}</span>`:'';
+      const st='';
       const ph=a.fotos.length?`<div class="a-photos">${a.fotos.map(f=>`<img class="a-photo-thumb" src="${f}" onclick="openLB('${f}')">`).join('')}</div>`:'';
       const isSelected=selIds.has(a.id);
       h+=`<div class="a-row${selMode?' sel-mode':''}${isSelected?' selected':''}" data-aid="${a.id}" ${selMode?`onclick="toggleSelId(${a.id})"`:''}>
@@ -5993,31 +6028,75 @@ async function compartirHojaJPGDirecto() {
     const canvas = await html2canvas(wrapper, { scale: 3, useCORS: true, backgroundColor: '#ffffff', allowTaint: true });
     document.body.removeChild(wrapper);
     const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
-    const file = new File([blob], `ISP_Programacion_${date}.jpg`, { type: 'image/jpeg' });
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ files: [file], title: 'ISP — Programación ' + dateStr });
-        toast('✓ Imagen compartida');
-        return;
-      } catch (shareErr) {
-        if (shareErr.name === 'AbortError') return;
-        // fall through to download
-      }
-    }
-    // Fallback: download
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `ISP_Programacion_${date}.jpg`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast('✓ Imagen descargada — ábrela desde Descargas y comparte por WhatsApp');
+    // Store blob globally so modal buttons can access it with fresh user gesture
+    window._sharedImgBlob = blob;
+    window._sharedImgDate = date;
+    // Show image preview modal — user taps share button with fresh gesture
+    const url = URL.createObjectURL(blob);
+    document.getElementById('mImgShareImg').src = url;
+    document.getElementById('mImgShare').classList.add('on');
+    window._sharedImgUrl = url;
   } catch (e) {
     if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
-    if (e.name !== 'AbortError') toast('Error: ' + e.message, 'err');
+    if (e.name !== 'AbortError') toast('Error generando imagen: ' + e.message, 'err');
   } finally {
     if (btn) { btn.textContent = '📸 Enviar'; btn.disabled = false; }
   }
+}
+
+function cerrarMImgShare() {
+  document.getElementById('mImgShare').classList.remove('on');
+  if (window._sharedImgUrl) { URL.revokeObjectURL(window._sharedImgUrl); window._sharedImgUrl = null; }
+}
+
+async function compartirDesdeModal() {
+  const blob = window._sharedImgBlob;
+  const date = window._sharedImgDate || '';
+  if (!blob) { toast('Sin imagen generada','warn'); return; }
+  const file = new File([blob], `ISP_Programacion_${date}.jpg`, { type: 'image/jpeg' });
+  if (navigator.share) {
+    try {
+      await navigator.share({ files: [file], title: 'ISP — Programación ' + date });
+      toast('✓ Imagen compartida');
+      cerrarMImgShare();
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  descargarDesdeModal();
+}
+
+function descargarDesdeModal() {
+  const blob = window._sharedImgBlob;
+  const date = window._sharedImgDate || 'hoy';
+  if (!blob) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ISP_Programacion_${date}.jpg`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('✓ Imagen guardada — ábrela y comparte por WhatsApp');
+}
+
+function nuevoDia() {
+  const msg = asigs.length
+    ? `¿Limpiar ${asigs.length} asignación${asigs.length!==1?'es':''} y empezar un nuevo día?\n\nTip: usa "Cerrar día" primero si quieres guardar en historial.`
+    : '¿Resetear el día actual?';
+  if (!confirm(msg)) return;
+  asigs = [];
+  nota = '';
+  nAid = 1;
+  // Advance date to today if it's behind
+  const today = new Date().toISOString().split('T')[0];
+  const dateEl = document.getElementById('globalDate');
+  if (dateEl && dateEl.value < today) dateEl.value = today;
+  // Reset all personal status to libre
+  if (confirm('¿También liberar a todos los colaboradores (quitar Comp./Incap./Permiso)?')) {
+    personal.forEach(p => p.status = 'libre');
+  }
+  renderPool(); renderAssigned(); renderReport(); chips(); saveMemory();
+  toast('✓ Día limpiado — listo para nueva programación');
 }
 
 
