@@ -357,6 +357,7 @@ header{
 .pcard:hover::before,.pcard.sel::before{background:var(--primary)}
 .pcard.sel{border-color:var(--primary);background:var(--primary-lt)}
 .pcard.off{opacity:.45;cursor:default;pointer-events:none}
+.pcard.off .pcard-acts{pointer-events:auto}
 .pc-r{display:flex;align-items:center;gap:9px}
 .pc-av{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;letter-spacing:.3px}
 .pc-info{flex:1;min-width:0}
@@ -2082,7 +2083,7 @@ function renderPool(){
   }
   el.innerHTML=h;
 }
-function toggleSt(pid,st){const p=personal.find(x=>x.id===pid);if(!p)return;p.status=p.status===st?'libre':st;if(selPid===pid)clearSel();renderPool();chips();}
+function toggleSt(pid,st){const p=personal.find(x=>x.id===pid);if(!p)return;p.status=p.status===st?'libre':st;if(selPid===pid)clearSel();renderPool();chips();saveMemory();}
 
 /* ══════════════════════════════════════════════════════════════
    MODE: INDIVIDUAL / MÚLTIPLE
