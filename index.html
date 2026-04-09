@@ -1163,7 +1163,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <input type="date" id="globalDate" value="2026-03-20" onchange="onDateChange()">
     </div>
     <div class="mem-pill" id="memPill" title="Días guardados en memoria">💾 <span id="memCount">0</span> días</div>
-    <div id="syncPill" title="Estado de sincronización con la nube" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:default">☁ Conectando…</div>
+    <div id="syncPill" title="Toca para reconectar" onclick="reintentarNube()" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:pointer">☁ Conectando…</div>
     <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button>
     <button class="btn btn-gold btn-sm" onclick="exportarJPG()">📸 JPG</button>
     <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
@@ -6204,6 +6204,20 @@ let fireApp, db, FDOC;
 let _fireTimer = null;
 let _fireReady = false;
 
+/* ── Reconectar manualmente ── */
+async function reintentarNube() {
+  if (!_fireReady) {
+    try {
+      fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
+      db = firebase.firestore();
+      FDOC = db.collection('isp').doc('datos');
+      _fireReady = true;
+    } catch(e) { toast('Error al inicializar Firebase: ' + (e.code||e.message), 'err'); return; }
+  }
+  setSyncStatus('loading');
+  try { await loadFromFirebase(); } catch(e) { setSyncStatus('error'); }
+}
+
 /* ── Sync status pill ── */
 function setSyncStatus(st) {
   const el = document.getElementById('syncPill');
@@ -6324,25 +6338,50 @@ async function loadFromFirebase() {
     setSyncStatus('ok');
     toast('✓ Datos cargados desde la nube');
   } catch (e) {
-    console.error('Firebase load error:', e);
+    console.error('Firebase load error:', e.code || e.message, e);
     setSyncStatus('error');
-    toast('ℹ Trabajando sin internet — datos locales activos', 'warn');
+    if (e.code === 'permission-denied') {
+      toast('⚠ Firestore: permiso denegado — revisa las reglas del proyecto', 'err');
+    } else if (e.code === 'unavailable' || e.message?.includes('network')) {
+      toast('ℹ Sin internet — datos locales activos', 'warn');
+    } else {
+      toast('ℹ Trabajando sin internet — datos locales activos', 'warn');
+    }
   }
 }
 
 /* ── Init Firebase on page load ── */
 (async function initFire() {
   try {
-    fireApp = firebase.initializeApp(FIRE_CFG);
+    // Guard: evitar doble inicialización en recargas
+    fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
     db      = firebase.firestore();
+    // Habilitar caché offline para funcionar sin internet
+    try { await db.enablePersistence({synchronizeTabs:true}); } catch(pe) {
+      if(pe.code !== 'failed-precondition' && pe.code !== 'unimplemented')
+        console.warn('Persistence:', pe.code);
+    }
     FDOC    = db.collection('isp').doc('datos');
     _fireReady = true;
     setSyncStatus('loading');
     await loadFromFirebase();
   } catch (e) {
-    console.error('Firebase init error:', e);
+    console.error('Firebase init error:', e.code || e.message, e);
     setSyncStatus('error');
-    toast('ℹ Firebase no disponible — usando datos locales', 'warn');
+    // Reintento automático tras 8 segundos
+    setTimeout(async () => {
+      try {
+        if (!_fireReady) {
+          fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
+          db = firebase.firestore();
+          FDOC = db.collection('isp').doc('datos');
+          _fireReady = true;
+        }
+        setSyncStatus('loading');
+        await loadFromFirebase();
+      } catch(e2) { setSyncStatus('error'); }
+    }, 8000);
+    toast('ℹ Sin conexión — reintentando…', 'warn');
   }
 })();
 
