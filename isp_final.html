@@ -264,22 +264,20 @@ input,select,textarea,button{font-family:'DM Sans',sans-serif}
 
 /* ─── HEADER ─── */
 header{
-  background:var(--primary);
+  background:linear-gradient(135deg,#0A1F5C 0%,#1A3580 60%,#0A1F5C 100%);
   border-bottom:3px solid var(--gold);
-  height:62px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;position:sticky;top:0;z-index:200;
-  box-shadow:0 2px 12px rgba(0,63,135,.25);
+  height:66px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:200;
+  box-shadow:0 3px 16px rgba(10,31,92,.4);
 }
-.hd-left{display:flex;align-items:center;gap:12px}
+.hd-left{display:flex;align-items:center;gap:10px}
 .hd-logo{
-  width:54px;height:48px;flex-shrink:0;
-  background:#fff;border-radius:8px;padding:5px 7px;
+  width:52px;height:46px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 12px rgba(0,0,0,.18);
 }
-.hd-logo svg{width:100%;height:100%;display:block}
+.hd-logo svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 .hd-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px;line-height:1.2}
-.hd-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
+.hd-sub{font-size:11px;color:var(--gold);margin-top:2px;font-style:italic;font-weight:500}
 .hd-right{display:flex;align-items:center;gap:7px}
 .date-pill{
   display:flex;align-items:center;gap:7px;
@@ -1115,6 +1113,12 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 /* ═══ JPG CAPTURE TARGET ═══ */
 #jpgCapture{position:fixed;left:-9999px;top:0;width:1080px;background:#fff;font-family:'DM Sans',sans-serif;padding:0;z-index:-1}
 
+/* ═══ SELECTION MODE ═══ */
+.a-row.sel-mode{cursor:pointer;padding-left:8px}
+.a-row.sel-mode:hover{background:var(--primary-lt)}
+.a-row.selected{background:#EEF4FF!important;border-left:3px solid var(--primary)}
+.a-check{width:20px;height:20px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;margin-right:8px}
+
 </style>
 </head>
 <body>
@@ -1123,7 +1127,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <header>
   <div class="hd-left">
     <div class="hd-logo" title="Instituto Salvadoreño de Pensiones">
-      <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 155" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="ispCurve" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stop-color="#E94560"/>
@@ -1131,8 +1135,8 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
             <stop offset="100%" stop-color="#FBC02D"/>
           </linearGradient>
         </defs>
-        <path d="M 55 22 Q 100 -2 145 22" stroke="url(#ispCurve)" stroke-width="14" stroke-linecap="round" fill="none"/>
-        <text x="100" y="115" text-anchor="middle" font-family="'DM Sans',Arial,sans-serif" font-weight="900" font-size="92" fill="#0A1F5C" letter-spacing="-2">ISP</text>
+        <path d="M 45 28 Q 100 -4 155 28" stroke="url(#ispCurve)" stroke-width="15" stroke-linecap="round" fill="none"/>
+        <text x="100" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="95" fill="#FFFFFF" letter-spacing="-2">ISP</text>
       </svg>
     </div>
     <div>
@@ -1265,6 +1269,8 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
           <span class="lz-title">Programación del Día</span>
           <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
             <span style="font-size:12px;color:var(--t3)" id="lzCount">Sin asignaciones</span>
+            <button class="btn btn-ghost btn-xs" id="btnSelMode" onclick="toggleSelMode()" title="Seleccionar para borrar varios">☑ Seleccionar</button>
+            <button class="btn btn-coral btn-xs" id="btnDelSel" onclick="borrarSeleccionados()" style="display:none">🗑 Borrar (<span id="selCount">0</span>)</button>
             <button class="btn btn-gold btn-xs" onclick="abrirCompartir()">📤 Compartir</button>
             <button class="btn btn-ghost btn-xs" onclick="exportDiarioExcel()" title="Descargar cuadro de actividades en Excel">📊 Excel</button>
             <button class="save-day-btn" onclick="cerrarDia()" id="btnCerrarDia" title="Guarda la programación de hoy en el historial">💾 Cerrar día</button>
@@ -2120,6 +2126,47 @@ function asignar(){
 }
 
 /* ═══ ASSIGNED LIST ═══ */
+let selMode=false;
+let selIds=new Set();
+
+function toggleSelMode(){
+  selMode=!selMode;
+  selIds.clear();
+  const btn=document.getElementById('btnSelMode');
+  const delBtn=document.getElementById('btnDelSel');
+  if(btn) btn.textContent=selMode?'✕ Cancelar':'☑ Seleccionar';
+  if(btn) btn.style.background=selMode?'var(--coral-lt)':'';
+  if(btn) btn.style.color=selMode?'var(--coral)':'';
+  if(delBtn) delBtn.style.display='none';
+  document.getElementById('selCount').textContent='0';
+  renderAssigned();
+}
+
+function toggleSelId(aid){
+  if(selIds.has(aid)) selIds.delete(aid); else selIds.add(aid);
+  document.getElementById('selCount').textContent=selIds.size;
+  const delBtn=document.getElementById('btnDelSel');
+  if(delBtn) delBtn.style.display=selIds.size?'':'none';
+  const row=document.querySelector(`.a-row[data-aid="${aid}"]`);
+  if(row) row.classList.toggle('selected', selIds.has(aid));
+  const cb=document.querySelector(`.a-check[data-aid="${aid}"]`);
+  if(cb) cb.checked=selIds.has(aid);
+}
+
+function borrarSeleccionados(){
+  if(!selIds.size){toast('Selecciona al menos una asignación','warn');return;}
+  const names=asigs.filter(a=>selIds.has(a.id)).map(a=>a.nombre.split(' ')[0]).join(', ');
+  if(!confirm(`¿Borrar ${selIds.size} asignación${selIds.size!==1?'es':''}?\n${names}`)) return;
+  asigs=asigs.filter(a=>!selIds.has(a.id));
+  selIds.clear();
+  selMode=false;
+  const btn=document.getElementById('btnSelMode');
+  if(btn){btn.textContent='☑ Seleccionar';btn.style.background='';btn.style.color='';}
+  document.getElementById('btnDelSel').style.display='none';
+  renderPool();renderAssigned();chips();saveMemory();
+  toast(`✓ Asignaciones eliminadas`);
+}
+
 function renderAssigned(){
   const el=document.getElementById('assignList');
   const cnt=asigs.length;
@@ -2129,15 +2176,18 @@ function renderAssigned(){
   let h='',n=1;
   [...AREAS,...Object.keys(grp).filter(k=>!AREAS.includes(k))].forEach(area=>{
     const rows=grp[area];if(!rows?.length)return;
-    h+=`<div class="area-sec"><div class="area-hdr ${ACLS[area]||'ah-otros'}"><h3>${area}</h3><span class="ac-chip">${rows.length} colaborador${rows.length!==1?'es':''}</span></div>`;
+    h+=`<div class="area-sec"><div class="area-hdr ${ACLS[area]||'ah-otros'}">`;
+    if(selMode) h+=`<input type="checkbox" class="a-check" title="Seleccionar todo ${area}" onchange="rows_${area.replace(/\s/g,'_')}_sel(this)" style="width:16px;height:16px;accent-color:#fff;margin-right:6px">`;
+    h+=`<h3>${area}</h3><span class="ac-chip">${rows.length} colaborador${rows.length!==1?'es':''}</span></div>`;
     rows.forEach(a=>{
       const proj=a.proyectoId?proyectos.find(x=>x.id==a.proyectoId):null;
       const pt=proj?`<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:${proj.color}18;color:${proj.color};border:1px solid ${proj.color}35;display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:${proj.color};display:inline-block"></span>${proj.nombre}</span>`:'';
       const pp=personal.find(x=>x.id===a.pid);
       const st=pp?.specs?.length?`<span class="a-spec-tag">${pp.specs.slice(0,2).join(', ')}</span>`:'';
       const ph=a.fotos.length?`<div class="a-photos">${a.fotos.map(f=>`<img class="a-photo-thumb" src="${f}" onclick="openLB('${f}')">`).join('')}</div>`:'';
-      h+=`<div class="a-row">
-        <div class="a-num">${n++}</div>
+      const isSelected=selIds.has(a.id);
+      h+=`<div class="a-row${selMode?' sel-mode':''}${isSelected?' selected':''}" data-aid="${a.id}" ${selMode?`onclick="toggleSelId(${a.id})"`:''}>
+        ${selMode?`<input type="checkbox" class="a-check" data-aid="${a.id}" ${isSelected?'checked':''} onclick="event.stopPropagation();toggleSelId(${a.id})">`:`<div class="a-num">${n++}</div>`}
         <div>
           <div class="a-name">${a.nombre}${st}</div>
           <div class="a-act">${a.actividad}</div>
@@ -2151,12 +2201,13 @@ function renderAssigned(){
           </div>
           ${ph}
         </div>
-        <div class="a-ctrl">
+        ${!selMode?`<div class="a-ctrl">
           <button class="done-btn${a.done?' done':''}" onclick="${a.done?`desmarcar(${a.id})`:`openComp(${a.id})`}">✓</button>
           <span class="done-lbl${a.done?' done':''}">${a.done?'OK':'—'}</span>
           <button class="btn btn-coral btn-xs" style="margin-top:3px" onclick="qAsig(${a.id})">✕</button>
-        </div>
+        </div>`:''}
       </div>`;
+      n++;
     });
     h+=`</div>`;
   });
@@ -5002,6 +5053,7 @@ function abrirHojaColaboradores(){
     +'.btn-blue{background:#003F87;color:#fff;box-shadow:0 3px 10px rgba(0,63,135,.3)}'
     +'.btn-wa{background:#25D366;color:#fff;box-shadow:0 3px 10px rgba(37,211,102,.3)}'
     +'.btn-ghost{background:#fff;border:1.5px solid #DDE6EE;color:#5D7285}'
+    +'.btn-xl{background:#0A1F5C;color:#fff;box-shadow:0 3px 10px rgba(10,31,92,.3)}'
     +'.foot{margin-top:14px;padding-top:10px;border-top:1px solid #DDE6EE;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}'
     +'.ft{font-size:11px;color:#9DB2C4}'
     +'@media print{'
@@ -5015,14 +5067,51 @@ function abrirHojaColaboradores(){
     +'.firma-cell{display:none}th.firma-cell{display:none}'
     +'.pg{padding:10px}'
     +'}'
-    +'</style></head><body><div class="pg">'
+    +'</style>'
+    +'<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>'
+    +'<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>'
+    +'<script>'
+    +'async function compartirComoImagen(btn){'
+    +'btn.textContent="\u23F3 Generando...";btn.disabled=true;'
+    +'try{'
+    +'const actEl=document.querySelector(".actions");actEl.style.display="none";'
+    +'const target=document.querySelector(".pg");'
+    +'const canvas=await html2canvas(target,{scale:2,useCORS:true,backgroundColor:"#fff"});'
+    +'actEl.style.display="";'
+    +'const blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",0.92));'
+    +'const file=new File([blob],"ISP_Programacion.jpg",{type:"image/jpeg"});'
+    +'if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){'
+    +'try{await navigator.share({files:[file],title:"ISP \u2014 Programaci\u00f3n"});}catch(e){if(e.name!=="AbortError"){const a=document.createElement("a");a.href=canvas.toDataURL("image/jpeg",0.92);a.download="ISP_Programacion.jpg";a.click();}}'
+    +'}else{const a=document.createElement("a");a.href=canvas.toDataURL("image/jpeg",0.92);a.download="ISP_Programacion.jpg";a.click();}'
+    +'}catch(e){alert("Error: "+e.message);}'
+    +'btn.textContent="\uD83D\uDCF8 Enviar imagen WhatsApp";btn.disabled=false;'
+    +'}'
+    +'function exportarExcelHoja(){'
+    +'const wb=XLSX.utils.book_new();'
+    +'const rows=[["ISP \u2014 INSTITUTO SALVADORE\u00d1O DE PENSIONES"],["PROGRAMACI\u00d3N DE ACTIVIDADES \u2014 "+document.querySelector(".hdr-date-v").textContent],[],["#","Colaborador","Especialidades","Actividad del d\u00eda","Hora entrada","Hora est. fin","\u2713 Firma / VoBo"]];'
+    +'let n=1;'
+    +'document.querySelectorAll(".area-block").forEach(function(t){'
+    +'rows.push(["",t.querySelector(".area-hdr span").textContent.toUpperCase(),"","","","",""]);'
+    +'t.querySelectorAll("tbody tr").forEach(function(tr){'
+    +'const d=tr.querySelectorAll("td");'
+    +'rows.push([n++,d[1]?d[1].querySelector(".emp-name")?d[1].querySelector(".emp-name").textContent:d[1].textContent:"",d[1]?d[1].querySelector(".spec")?d[1].querySelector(".spec").textContent:"":"",d[2]?d[2].textContent.trim():"",d[3]?d[3].textContent.trim():"","",""]);'
+    +'});});'
+    +'const ws=XLSX.utils.aoa_to_sheet(rows);'
+    +'ws["!cols"]=[{wch:5},{wch:28},{wch:22},{wch:52},{wch:14},{wch:14},{wch:20}];'
+    +'ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:0},e:{r:1,c:6}}];'
+    +'XLSX.utils.book_append_sheet(wb,ws,"Programaci\u00f3n");'
+    +'XLSX.writeFile(wb,"ISP_Hoja_Colaboradores.xlsx");'
+    +'}'
+    +'<\/script>'
+    +'</head><body><div class="pg">'
     +'<div class="hdr"><div class="hdr-l"><div class="logo">ISP</div>'
     +'<div><div class="hdr-title">Programaci\u00f3n de Actividades</div>'
     +'<div class="hdr-sub">Unidad de Mantenimiento \u00b7 Instituto Salvadore\u00f1o de Pensiones</div></div></div>'
     +'<div class="hdr-date"><div class="hdr-date-l">Fecha</div><div class="hdr-date-v">'+dateShort+'</div></div></div>'
     +'<div class="actions">'
     +'<button class="btn btn-blue" onclick="window.print()">\uD83D\uDDA8 Imprimir / PDF</button>'
-    +'<a class="btn btn-wa" href="https://wa.me/?text='+waText+'" target="_blank">\uD83D\uDCF2 Compartir por WhatsApp</a>'
+    +'<button class="btn btn-wa" onclick="compartirComoImagen(this)">\uD83D\uDCF8 Enviar imagen WhatsApp</button>'
+    +'<button class="btn btn-xl" onclick="exportarExcelHoja()">\uD83D\uDCCA Excel</button>'
     +'<button class="btn btn-ghost" onclick="window.close()">\u2715 Cerrar</button>'
     +'</div>'
     +notaSection
