@@ -1196,12 +1196,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
         </div>
         <div class="fg-grid">
           <div class="fg"><label>Área / Ubicación</label>
-            <select id="fArea" onchange="renderQuickActs()">
-              <option value="Club de Playa">Club de Playa</option>
-              <option value="Centro de Gobierno">Centro de Gobierno</option>
-              <option value="Módulo 7">Módulo 7 — Sala Presidencia</option>
-              <option value="Baños M4">Baños M4</option>
-              <option value="Otros">Otros</option>
+            <select id="fArea" onchange="onFAreaChange()">
             </select>
           </div>
           <div class="fg"><label>Vincular proyecto</label>
@@ -1352,7 +1347,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="fg-grid">
       <div class="fg"><label>Nombre completo</label><input type="text" id="pmN" placeholder="Nombre completo"></div>
       <div class="fg"><label>Área habitual</label>
-        <select id="pmA"><option value="Club de Playa">Club de Playa</option><option value="Centro de Gobierno">Centro de Gobierno</option><option value="Módulo 7">Módulo 7</option><option value="Baños M4">Baños M4</option><option value="Otros">Otros</option></select>
+        <select id="pmA"></select>
       </div>
       <div class="fg full">
         <label>Especialidades</label>
@@ -1372,7 +1367,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="fg-grid">
       <div class="fg full"><label>Nombre del proyecto</label><input type="text" id="pjN" placeholder="Ej: Remodelación Módulo 7"></div>
       <div class="fg full"><label>Descripción</label><textarea id="pjD" style="min-height:52px" placeholder="Alcance y objetivo…"></textarea></div>
-      <div class="fg"><label>Área</label><select id="pjA"><option value="Club de Playa">Club de Playa</option><option value="Centro de Gobierno">Centro de Gobierno</option><option value="Módulo 7">Módulo 7</option><option value="Baños M4">Baños M4</option><option value="General">General</option><option value="Otros">Otros</option></select></div>
+      <div class="fg"><label>Área</label><select id="pjA"></select></div>
       <div class="fg"><label>Estado</label><select id="pjE"><option value="activo">🟢 Activo</option><option value="pausado">🟡 Pausado</option><option value="completado">✅ Completado</option></select></div>
       <div class="fg"><label>Fecha inicio</label><input type="date" id="pjFI"></div>
       <div class="fg"><label>Fecha fin estimada</label><input type="date" id="pjFF"></div>
@@ -1388,7 +1383,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <h3 id="mActT">Nueva actividad rápida</h3><p class="modal-sub">Aparecerá como chip de acceso rápido al asignar</p>
     <div class="fg-grid">
       <div class="fg full"><label>Nombre</label><input type="text" id="afN" placeholder="Ej: Pintura de portón"></div>
-      <div class="fg"><label>Área relacionada</label><select id="afA"><option value="General">General (todas)</option><option value="Club de Playa">Club de Playa</option><option value="Centro de Gobierno">Centro de Gobierno</option><option value="Módulo 7">Módulo 7</option><option value="Baños M4">Baños M4</option></select></div>
+      <div class="fg"><label>Área relacionada</label><select id="afA"></select></div>
       <div class="fg"><label>Emoji</label><input type="text" id="afE" placeholder="🔧" maxlength="4" style="font-size:20px;text-align:center"></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeActM()">Cancelar</button><button class="btn btn-primary" onclick="saveActFreq()">Guardar</button></div>
@@ -1769,7 +1764,57 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
    - AREA_BG → background tints for area chips, keep in frontend
 ═══════════════════════════════════════════════════════════════ */
 const PCOLORS=['#003F87','#005A8E','#0077B6','#155E38','#1A7A4A','#7B2D12','#C8A84B','#5C4DB1','#2C3E50','#0096C7'];
-const AREAS=["Club de Playa","Centro de Gobierno","Módulo 7","Baños M4","Otros"];
+const AREAS_DEFAULT=["Club de Playa","Centro de Gobierno","Módulo 7","Baños M4","Otros"];
+const LS_CUSTOM_AREAS='isp_custom_areas_v1';
+let customAreas=[];
+try{const ca=localStorage.getItem(LS_CUSTOM_AREAS);if(ca)customAreas=JSON.parse(ca);}catch(e){}
+const AREAS=[...AREAS_DEFAULT,...customAreas.filter(a=>!AREAS_DEFAULT.includes(a))];
+function getAllAreas(){return[...AREAS_DEFAULT,...customAreas.filter(a=>!AREAS_DEFAULT.includes(a))];}
+function saveCustomAreas(){try{localStorage.setItem(LS_CUSTOM_AREAS,JSON.stringify(customAreas));}catch(e){}}
+function addCustomArea(name){const n=name.trim();if(!n||getAllAreas().includes(n))return false;customAreas.push(n);AREAS.push(n);saveCustomAreas();populateAreaSelects();return true;}
+function populateAreaSelects(){
+  const all=getAllAreas();
+  // fArea: base areas + custom + "Nueva área"
+  const fA=document.getElementById('fArea');
+  const fAval=fA?fA.value:'';
+  if(fA){
+    fA.innerHTML=all.map(a=>`<option value="${a}">${a==='Módulo 7'?'Módulo 7 — Sala Presidencia':a}</option>`).join('')+
+      `<option value="__nueva__">＋ Nueva área…</option>`;
+    if(fAval&&fA.querySelector(`option[value="${fAval}"]`))fA.value=fAval;
+  }
+  // pmA: base areas + custom
+  const pmA=document.getElementById('pmA');
+  const pmAval=pmA?pmA.value:'';
+  if(pmA){pmA.innerHTML=all.map(a=>`<option value="${a}">${a}</option>`).join('');if(pmAval&&pmA.querySelector(`option[value="${pmAval}"]`))pmA.value=pmAval;}
+  // pjA: base areas + General + custom
+  const pjA=document.getElementById('pjA');
+  const pjAval=pjA?pjA.value:'';
+  if(pjA){
+    const pjAll=['General',...all.filter(a=>a!=='General')];
+    pjA.innerHTML=pjAll.map(a=>`<option value="${a}">${a}</option>`).join('');
+    if(pjAval&&pjA.querySelector(`option[value="${pjAval}"]`))pjA.value=pjAval;
+  }
+  // afA: General + base areas + custom
+  const afA=document.getElementById('afA');
+  const afAval=afA?afA.value:'';
+  if(afA){
+    afA.innerHTML=`<option value="General">General (todas)</option>`+all.filter(a=>a!=='General').map(a=>`<option value="${a}">${a}</option>`).join('');
+    if(afAval&&afA.querySelector(`option[value="${afAval}"]`))afA.value=afAval;
+  }
+}
+function onFAreaChange(){
+  const sel=document.getElementById('fArea');
+  if(sel.value==='__nueva__'){
+    const nombre=prompt('Nombre del nuevo área / ubicación:','');
+    if(nombre&&nombre.trim()){
+      addCustomArea(nombre.trim());
+      sel.value=nombre.trim();
+    }else{
+      sel.value=getAllAreas()[0]||'';
+    }
+  }
+  renderQuickActs();
+}
 const ACLS={"Club de Playa":"ah-playa","Centro de Gobierno":"ah-gobierno","Módulo 7":"ah-modulo","Baños M4":"ah-banos","Otros":"ah-otros"};
 const ACOL={"Club de Playa":"#005A8E","Centro de Gobierno":"#003F87","Módulo 7":"#155E38","Baños M4":"#7B2D12","Otros":"#2C3E50"};
 const AREA_BG={"Club de Playa":"#E0F2FE","Centro de Gobierno":"#EEF0FF","Módulo 7":"#D1FAE5","Baños M4":"#FFEDD5","General":"#F5F5F3","Otros":"#F5F5F3"};
@@ -2151,7 +2196,20 @@ function syncProj(a){if(!a.proyectoId)return;const pr=proyectos.find(x=>x.id==a.
 ══════════════════════════════════════════════════════════════ */
 function openComp(aid){const a=asigs.find(x=>x.id===aid);if(!a)return;compId=aid;tempPhotos=[...(a.fotos||[])];document.getElementById('mCompSub').textContent=`${a.nombre} — ${a.actividad.substring(0,55)}${a.actividad.length>55?'…':''}`;document.getElementById('cHora').value=a.horaFin||nowStr();document.getElementById('cEst').value=(a.estado&&a.estado!=='pendiente')?a.estado:'completada';document.getElementById('cObs').value=a.observaciones||'';renderPPs();document.getElementById('mComp').classList.add('on');}
 function closeComp(){document.getElementById('mComp').classList.remove('on');compId=null;tempPhotos=[];}
-function prevPhotos(e){Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{tempPhotos.push(ev.target.result);renderPPs();};r.readAsDataURL(f);});}
+/* Load image file with EXIF orientation correction using createImageBitmap */
+async function loadImageFixed(file){
+  try{
+    const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});
+    const canvas=document.createElement('canvas');
+    canvas.width=bmp.width;canvas.height=bmp.height;
+    canvas.getContext('2d').drawImage(bmp,0,0);
+    bmp.close();
+    return canvas.toDataURL('image/jpeg',0.85);
+  }catch(e){
+    return new Promise(res=>{const r=new FileReader();r.onload=ev=>res(ev.target.result);r.readAsDataURL(file);});
+  }
+}
+function prevPhotos(e){Array.from(e.target.files).forEach(async f=>{const src=await loadImageFixed(f);tempPhotos.push(src);renderPPs();});}
 function renderPPs(){document.getElementById('photoPrevs').innerHTML=tempPhotos.map((f,i)=>`<div class="photo-prev"><img src="${f}"><button class="photo-prev-del" onclick="rmP(${i})">✕</button></div>`).join('');}
 function rmP(i){tempPhotos.splice(i,1);renderPPs();}
 function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.done=true;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=document.getElementById('cEst').value;a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];syncProj(a);closeComp();renderAssigned();chips();toast(`✓ ${a.nombre} registrado`);}
@@ -3221,14 +3279,16 @@ function expPDFInforme(){
       }
       if(isDone&&a.observaciones&&expSc.o){st(C.mt);ff('italic',7.5);doc.text('📝 '+a.observaciones.substring(0,90)+(a.observaciones.length>90?'…':''),20,y+15);}
       y+=hasExtra?21:17;
-      // Fotos
+      // Fotos — mostrar TODAS en filas de 3, orientación original
       if(isDone&&a.fotos.length){
-        chy(10);st(C.t3);ff('normal',7.5);doc.text('Evidencia fotográfica:',14,y);y+=5;
-        const maxF=Math.min(a.fotos.length,4);const fw=(W-28-(maxF-1)*4)/maxF,fh=Math.min(fw*.75,50);
-        for(let fi=0;fi<maxF;fi++){
-          chy(fh+4);
-          try{doc.addImage(a.fotos[fi],'JPEG',14+fi*(fw+4),y,fw,fh,undefined,'FAST');}
-          catch{sf(C.bg);doc.rect(14+fi*(fw+4),y,fw,fh,'F');st(C.t3);ff('normal',7);doc.text('📷',14+fi*(fw+4)+fw/2,y+fh/2,{align:'center'});}
+        chy(10);st(C.t3);ff('normal',7.5);doc.text(`Evidencia fotográfica (${a.fotos.length}):`,14,y);y+=5;
+        const cols=Math.min(a.fotos.length,3);const fw=(W-28-(cols-1)*4)/cols,fh=fw*0.75;
+        for(let fi=0;fi<a.fotos.length;fi++){
+          const col=fi%cols;
+          if(col===0&&fi>0)y+=fh+4;
+          chy(fh+6);
+          try{doc.addImage(a.fotos[fi],'JPEG',14+col*(fw+4),y,fw,fh,undefined,'MEDIUM');}
+          catch{sf(C.bg);doc.rect(14+col*(fw+4),y,fw,fh,'F');st(C.t3);ff('normal',7);doc.text('📷',14+col*(fw+4)+fw/2,y+fh/2,{align:'center'});}
         }
         y+=fh+8;
       }
@@ -3291,6 +3351,7 @@ function expWord(){
       <tbody>${rows.map((a,i)=>{
         const pp=personal.find(x=>x.id===a.pid);
         const sp=pp?.specs?.length?`<br><span style="font-size:8pt;color:#7B68EE">🔧 ${pp.specs.join(' · ')}</span>`:'';
+        const fotosRow=(a.fotos&&a.fotos.length)?`<tr style="background:#F8F8FF"><td colspan="${2+(expSc.e?1:0)+(expSc.o?1:0)+2}" style="padding:8pt 10pt;border-bottom:1pt solid #E8E6E1"><div style="font-size:8pt;color:#6E6B80;margin-bottom:5pt">📸 Evidencia (${a.fotos.length}):</div><div style="display:flex;gap:6pt;flex-wrap:wrap">${a.fotos.map(f=>`<img src="${f}" style="max-width:140pt;max-height:140pt;width:auto;height:auto;border-radius:4pt;border:1pt solid #E8E6E1;object-fit:contain">`).join('')}</div></td></tr>`:'';
         return `<tr style="background:${i%2===0?'#FAFAF9':'#FFF'}">
           <td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;color:#AEA9BF;font-weight:700;text-align:center">${i+1}</td>
           <td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;font-weight:700">${a.nombre}${sp}</td>
@@ -3298,7 +3359,7 @@ function expWord(){
           <td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;color:#6E6B80">${a.hora||'6:30 am'}${a.horaFin?'<br><span style="color:#2ECC71">🕐 '+a.horaFin+'</span>':''}</td>
           ${expSc.e?`<td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;font-weight:700;color:${a.done?'#2ECC71':'#FF6B6B'}">${a.done?'✓ Cumplida':'⏳ Pendiente'}</td>`:''}
           ${expSc.o?`<td style="padding:6pt 10pt;border-bottom:1pt solid #E8E6E1;font-style:italic;color:#6E6B80">${a.observaciones||'—'}</td>`:''}
-        </tr>`;
+        </tr>${fotosRow}`;
       }).join('')}</tbody>
     </table>`;
   });
@@ -3784,6 +3845,11 @@ function loadMemory(){
 
     const pr = localStorage.getItem(LS_PROJS);
     if(pr){ const loaded=JSON.parse(pr); if(loaded.length) proyectos=loaded; }
+
+    // Discover any custom areas already in saved data
+    const allKnown=getAllAreas();
+    const srcAreas=[...personal.map(x=>x.area),...proyectos.map(x=>x.area),...actFrec.map(x=>x.area)];
+    srcAreas.forEach(a=>{if(a&&!allKnown.includes(a)){customAreas.push(a);AREAS.push(a);}});
 
     updateMemPill();
   } catch(e){ console.warn('Error loading memory:', e); }
@@ -4633,6 +4699,7 @@ function abrirExport(){
    updateProjSel() → select options from proyectos query
 ══════════════════════════════════════════════════════════════ */
 loadMemory();   // ← load localStorage FIRST
+populateAreaSelects(); // ← populate all area dropdowns (including custom)
 renderPool();
 renderAssigned();
 chips();
@@ -5033,13 +5100,10 @@ function updatePctBtns(v) {
 
 function prevSegPhotos(e) {
   const files = Array.from(e.target.files);
-  files.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      segTempPhotos.push(ev.target.result);
-      renderSegPrevs();
-    };
-    reader.readAsDataURL(f);
+  files.forEach(async f => {
+    const src = await loadImageFixed(f);
+    segTempPhotos.push(src);
+    renderSegPrevs();
   });
 }
 
@@ -5306,7 +5370,7 @@ function exportarWordSeguimiento() {
         ? `<tr><td colspan="2" style="padding:10px 14px;background:#F8FAFC;border:1px solid #DDE6EE">
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📸 Fotos de evidencia (${seg.fotos.length})</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-              ${seg.fotos.map(f => `<img src="${f}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;border:1.5px solid #DDE6EE">`).join('')}
+              ${seg.fotos.map(f => `<img src="${f}" style="max-width:160px;max-height:160px;width:auto;height:auto;border-radius:6px;border:1.5px solid #DDE6EE;object-fit:contain">`).join('')}
             </div>
           </td></tr>`
         : '';
