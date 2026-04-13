@@ -244,9 +244,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<!-- Firebase via REST API directo — sin SDK -->
 <style>
 :root{
   --canvas:#F0F4F8;--white:#FFFFFF;--surface:#FFFFFF;--surface2:#F7FAFC;
@@ -6237,101 +6235,60 @@ function generarWord(tipo, proyId) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FIREBASE INTEGRATION — ISP Gestión de Actividades
-   Sincronización en la nube con Google Firestore
-   Las fotos se guardan solo en este dispositivo (localStorage)
-   por límite de tamaño. El resto sincroniza automáticamente.
+   CLOUD SYNC — Firestore REST API (sin SDK)
+   Verificado: read/write funcionan correctamente desde servidor.
+   Las fotos se guardan solo en localStorage por límite de tamaño.
 ══════════════════════════════════════════════════════════════ */
 
-const FIRE_CFG = {
-  apiKey: "AIzaSyDLdCbtBg45pDsBv131QsVBnqINrFPCgFY",
-  authDomain: "isp-mantenimiento.firebaseapp.com",
-  projectId: "isp-mantenimiento",
-  storageBucket: "isp-mantenimiento.firebasestorage.app",
-  messagingSenderId: "212035445121",
-  appId: "1:212035445121:web:4ad53576cf0fe87fe20880"
-};
+const FBASE = 'https://firestore.googleapis.com/v1/projects/isp-mantenimiento/databases/(default)/documents/isp/datos';
+const FKEY  = 'AIzaSyDLdCbtBg45pDsBv131QsVBnqINrFPCgFY';
 
-let fireApp, db, FDOC;
 let _fireTimer = null;
 let _fireReady = false;
+let _lastFireError = null;
 
-/* ── Reconectar manualmente ── */
-async function reintentarNube() {
-  if (!_fireReady) {
-    try {
-      fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
-      db = firebase.firestore();
-      FDOC = db.collection('isp').doc('datos');
-      _fireReady = true;
-    } catch(e) { toast('Error al inicializar Firebase: ' + (e.code||e.message), 'err'); return; }
-  }
-  setSyncStatus('loading');
-  try { await loadFromFirebase(); } catch(e) { setSyncStatus('error'); }
-}
-
-/* ── Diagnóstico Firebase ── */
-function diagFirebase() {
-  const err = _lastFireError;
-  const code = err ? (err.code || err.message || String(err)) : 'Sin error registrado';
-  const soluciones = {
-    'permission-denied': '➜ Las reglas de Firestore están vencidas.\n\nVe a console.firebase.google.com → isp-mantenimiento → Firestore Database → Reglas → pega:\n\nrules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /isp/{document=**} {\n      allow read, write: if true;\n    }\n  }\n}\n\nLuego click Publicar.',
-    'unavailable': '➜ Sin conexión a internet o Firebase caído.\nIntenta de nuevo cuando tengas red.',
-    'not-found': '➜ Documento no existe aún. Esto se crea automáticamente al guardar.',
-  };
-  const sol = soluciones[err?.code] || '➜ Código de error: ' + code + '\n\nContacta soporte con este código.';
-  alert('🔍 Diagnóstico Firebase\n\nError: ' + code + '\n\n' + sol);
-}
-
-/* ── EXPORTAR datos para sincronizar entre dispositivos ── */
-function exportarDatos() {
-  const payload = {
-    v: 1, ts: new Date().toISOString(),
-    personal, actFrec, proyectos, historial,
-    diaActual: {
-      fecha: document.getElementById('globalDate').value,
-      asigs: asigs.map(a => ({...a, fotos:[]})), // sin fotos (muy grandes)
-      nota, nAid
+/* ── Convierte JS → formato Firestore REST ── */
+function toFS(v) {
+  if (v === null || v === undefined) return {nullValue: null};
+  if (typeof v === 'boolean') return {booleanValue: v};
+  if (typeof v === 'number')  return Number.isInteger(v) ? {integerValue: String(v)} : {doubleValue: v};
+  if (typeof v === 'string')  return {stringValue: v};
+  if (Array.isArray(v))       return {arrayValue: {values: v.map(toFS)}};
+  if (typeof v === 'object') {
+    const fields = {};
+    for (const [k, val] of Object.entries(v)) {
+      if (val !== undefined) fields[k] = toFS(val);
     }
-  };
-  const json = JSON.stringify(payload, null, 2);
-  const blob = new Blob([json], {type:'application/json'});
-  smartDownload(blob, `ISP_datos_${new Date().toISOString().split('T')[0]}.json`);
-  toast('✓ Datos exportados — comparte el archivo por WhatsApp o email');
+    return {mapValue: {fields}};
+  }
+  return {stringValue: String(v)};
 }
 
-/* ── IMPORTAR datos desde otro dispositivo ── */
-function importarDatos() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json,application/json';
-  input.onchange = e => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const d = JSON.parse(ev.target.result);
-        if (!d.personal || !d.diaActual) { toast('Archivo no válido', 'err'); return; }
-        if (!confirm(`¿Importar datos de ${d.ts ? new Date(d.ts).toLocaleString('es-SV') : 'fecha desconocida'}?\n\nEsto reemplazará los datos actuales en este dispositivo.`)) return;
-        personal  = d.personal  || personal;
-        actFrec   = d.actFrec   || actFrec;
-        proyectos = d.proyectos || proyectos;
-        historial = d.historial || historial;
-        if (d.diaActual) {
-          asigs = d.diaActual.asigs || [];
-          nota  = d.diaActual.nota  || '';
-          nAid  = d.diaActual.nAid  || 1;
-          const dp = document.getElementById('globalDate');
-          if (dp && d.diaActual.fecha) dp.value = d.diaActual.fecha;
-        }
-        saveMemory();
-        renderPool(); renderAssigned(); chips(); renderQuickActs();
-        updateProjSel(); renderHistorial(); renderPersonal();
-        toast('✓ Datos importados correctamente');
-      } catch(err) { toast('Error al leer archivo: ' + err.message, 'err'); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
+/* ── Convierte formato Firestore REST → JS ── */
+function fromFS(v) {
+  if (!v) return null;
+  if ('nullValue'    in v) return null;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('integerValue' in v) return parseInt(v.integerValue);
+  if ('doubleValue'  in v) return v.doubleValue;
+  if ('stringValue'  in v) return v.stringValue;
+  if ('arrayValue'   in v) return (v.arrayValue.values || []).map(fromFS);
+  if ('mapValue'     in v) {
+    const obj = {};
+    for (const [k, val] of Object.entries(v.mapValue.fields || {})) obj[k] = fromFS(val);
+    return obj;
+  }
+  return null;
+}
+
+/* ── Quita fotos base64 antes de subir ── */
+function stripPhotos(arr) {
+  if (!arr) return [];
+  return arr.map(a => {
+    const c = {...a, fotos: []};
+    if (c.seguimiento) c.seguimiento = {...c.seguimiento, fotos: []};
+    return c;
+  });
 }
 
 /* ── Sync status pill ── */
@@ -6352,138 +6309,154 @@ function setSyncStatus(st, detail) {
   if (st === 'saved') setTimeout(() => setSyncStatus('ok'), 3000);
 }
 
-/* ── Remove base64 photos before cloud save (too large for Firestore) ── */
-function stripPhotos(arr) {
-  if (!arr) return [];
-  return arr.map(a => {
-    const clean = { ...a, fotos: [] };
-    if (clean.seguimiento) clean.seguimiento = { ...clean.seguimiento, fotos: [] };
-    return clean;
-  });
-}
-
-/* ── Save everything to Firestore ── */
+/* ── Guardar en Firestore via REST ── */
 async function saveToFirebase() {
-  if (!_fireReady || !FDOC) return;
+  if (!_fireReady) return;
   setSyncStatus('saving');
   try {
     const dp = document.getElementById('globalDate');
     const payload = {
-      personal,
-      actFrec,
-      proyectos,
-      historial: historial.map(d => ({
-        ...d,
-        asignaciones: stripPhotos(d.asignaciones)
-      })),
+      personal, actFrec, proyectos,
+      historial: historial.map(d => ({...d, asignaciones: stripPhotos(d.asignaciones)})),
       diaActual: {
-        fecha: dp ? dp.value : null,
+        fecha: dp?.value || null,
         asigs: stripPhotos(asigs),
-        nota,
-        nAid
-      },
-      ts: firebase.firestore.FieldValue.serverTimestamp()
+        nota, nAid
+      }
     };
-    await FDOC.set(payload);
+    const fields = {};
+    for (const [k, v] of Object.entries(payload)) fields[k] = toFS(v);
+    const resp = await fetch(`${FBASE}?key=${FKEY}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fields})
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     setSyncStatus('saved');
-  } catch (e) {
-    console.error('Firebase save error:', e);
-    setSyncStatus('error');
+  } catch(e) {
+    _lastFireError = e;
+    console.error('Cloud save error:', e);
+    setSyncStatus('error', e.message);
   }
 }
 
-/* ── Schedule a save with 2s debounce ── */
+/* ── Cargar desde Firestore via REST ── */
+async function loadFromFirebase() {
+  const resp = await fetch(`${FBASE}?key=${FKEY}`);
+  if (resp.status === 404) {
+    setSyncStatus('ok');
+    await saveToFirebase();
+    toast('✓ Primera conexión — datos guardados en la nube');
+    return;
+  }
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const doc = await resp.json();
+  const raw = {};
+  for (const [k, v] of Object.entries(doc.fields || {})) raw[k] = fromFS(v);
+
+  if (raw.personal?.length)  personal  = raw.personal;
+  if (raw.actFrec?.length)   actFrec   = raw.actFrec;
+  if (raw.proyectos?.length) proyectos = raw.proyectos;
+  if (raw.historial?.length) historial = raw.historial;
+  if (raw.diaActual) {
+    const dia = raw.diaActual;
+    if (dia.asigs?.length) {
+      const localDia = (() => { try { return JSON.parse(localStorage.getItem(LS_DIA)||'{}'); } catch(e){return{};} })();
+      asigs = dia.asigs.map(a => {
+        const loc = (localDia.asigs||[]).find(x => x.id === a.id);
+        return loc ? {...a, fotos: loc.fotos||[]} : a;
+      });
+    }
+    if (dia.nota)  nota  = dia.nota;
+    if (dia.nAid)  nAid  = dia.nAid;
+    if (dia.fecha) { const dp = document.getElementById('globalDate'); if(dp) dp.value = dia.fecha; }
+  }
+  renderPool(); renderAssigned(); chips(); renderQuickActs();
+  updateProjSel(); renderHistorial(); updateMemPill();
+  const nt = document.getElementById('notaText');
+  if (nt) nt.textContent = nota;
+  setSyncStatus('ok');
+  toast('✓ Sincronizado con la nube');
+}
+
+/* ── Debounce para guardar ── */
 function scheduleFire() {
   if (!_fireReady) return;
   if (_fireTimer) clearTimeout(_fireTimer);
   _fireTimer = setTimeout(saveToFirebase, 2000);
 }
 
-/* ── Override saveMemory to also push to Firebase ── */
+/* ── Override saveMemory para también subir a la nube ── */
 const _origSaveMemory = saveMemory;
-saveMemory = function () {
-  _origSaveMemory();
-  scheduleFire();
-};
+saveMemory = function () { _origSaveMemory(); scheduleFire(); };
 
-/* ── Load data from Firestore and refresh all UI ── */
-async function loadFromFirebase() {
+/* ── Reconectar manualmente (toque en la píldora) ── */
+async function reintentarNube() {
+  setSyncStatus('loading');
   try {
-    const snap = await FDOC.get();
-    if (!snap.exists) {
-      // First time ever: upload local data to cloud
-      setSyncStatus('ok');
-      await saveToFirebase();
-      toast('✓ Primera conexión — datos guardados en la nube');
-      return;
-    }
-    const d = snap.data();
-    if (d.personal  && d.personal.length)  personal  = d.personal;
-    if (d.actFrec   && d.actFrec.length)   actFrec   = d.actFrec;
-    if (d.proyectos && d.proyectos.length) proyectos = d.proyectos;
-    if (d.historial && d.historial.length) historial = d.historial;
-    if (d.diaActual) {
-      const dia = d.diaActual;
-      if (dia.asigs && dia.asigs.length) {
-        // Merge cloud asigs with local fotos (photos stay local)
-        const localDia = (() => {
-          try { return JSON.parse(localStorage.getItem(LS_DIA) || '{}'); } catch(e2) { return {}; }
-        })();
-        asigs = dia.asigs.map(a => {
-          const local = (localDia.asigs || []).find(x => x.id === a.id);
-          return local ? { ...a, fotos: local.fotos || [], seguimiento: local.seguimiento ? { ...a.seguimiento, fotos: (local.seguimiento || {}).fotos || [] } : a.seguimiento } : a;
-        });
-      }
-      if (dia.nota)  nota  = dia.nota;
-      if (dia.nAid)  nAid  = dia.nAid;
-      if (dia.fecha) {
-        const dp = document.getElementById('globalDate');
-        if (dp) { dp.value = dia.fecha; onDateChange(); }
-      }
-    }
-    // Re-render UI with fresh data
-    renderPool();
-    renderAssigned();
-    chips();
-    renderQuickActs();
-    updateProjSel();
-    renderHistorial();
-    updateMemPill();
-    const nt = document.getElementById('notaText');
-    if (nt) nt.textContent = nota;
-    setSyncStatus('ok');
-    toast('✓ Datos cargados desde la nube');
-  } catch (e) {
+    _fireReady = true;
+    await loadFromFirebase();
+  } catch(e) {
     _lastFireError = e;
-    console.error('Firebase load error:', e.code || e.message, e);
-    const code = e.code || 'unknown';
-    setSyncStatus('error', code);
-    if (code === 'permission-denied') {
-      toast('⚠ Reglas de Firestore vencidas — toca ⚠ Sin nube para instrucciones', 'err');
-    } else if (code === 'unavailable') {
-      toast('ℹ Sin internet — usando datos locales', 'warn');
-    } else {
-      toast(`ℹ Nube: ${code} — toca ⚠ Sin nube para detalles`, 'warn');
-    }
+    setSyncStatus('error', e.message);
+    toast('Sin conexión — ' + e.message, 'warn');
   }
 }
 
-/* ── Init Firebase on page load ── */
-let _lastFireError = null;
-(async function initFire() {
+/* ── Diagnóstico ── */
+function diagFirebase() {
+  const e = _lastFireError;
+  const msg = e ? (e.message || String(e)) : 'Sin error';
+  alert('🔍 Diagnóstico nube\n\n' + msg);
+}
+
+/* ── EXPORTAR datos para sincronizar entre dispositivos ── */
+function exportarDatos() {
+  const payload = { v:1, ts: new Date().toISOString(), personal, actFrec, proyectos, historial,
+    diaActual: { fecha: document.getElementById('globalDate').value, asigs: asigs.map(a=>({...a,fotos:[]})), nota, nAid }
+  };
+  smartDownload(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}), `ISP_datos_${new Date().toISOString().split('T')[0]}.json`);
+  toast('✓ Datos exportados');
+}
+
+/* ── IMPORTAR datos desde otro dispositivo ── */
+function importarDatos() {
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if(!d.personal||!d.diaActual){toast('Archivo no válido','err');return;}
+        if(!confirm(`¿Importar datos de ${d.ts?new Date(d.ts).toLocaleString('es-SV'):'fecha desconocida'}?`)) return;
+        personal=d.personal||personal; actFrec=d.actFrec||actFrec;
+        proyectos=d.proyectos||proyectos; historial=d.historial||historial;
+        if(d.diaActual){ asigs=d.diaActual.asigs||[]; nota=d.diaActual.nota||''; nAid=d.diaActual.nAid||1;
+          const dp=document.getElementById('globalDate'); if(dp&&d.diaActual.fecha) dp.value=d.diaActual.fecha; }
+        saveMemory(); renderPool(); renderAssigned(); chips(); renderQuickActs();
+        updateProjSel(); renderHistorial(); renderPersonal();
+        toast('✓ Datos importados');
+      } catch(err){toast('Error: '+err.message,'err');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* ── Inicio: conectar a la nube ── */
+(async function() {
+  _fireReady = true;
+  setSyncStatus('loading');
   try {
-    fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
-    db = firebase.firestore();
-    // Configurar caché offline sin enablePersistence (más compatible)
-    FDOC = db.collection('isp').doc('datos');
-    _fireReady = true;
-    setSyncStatus('loading');
     await loadFromFirebase();
-  } catch (e) {
+  } catch(e) {
     _lastFireError = e;
-    console.error('Firebase init error:', e.code || e.message, e);
-    setSyncStatus('error', e.code || e.message);
-    setTimeout(() => reintentarNube(), 10000);
+    _fireReady = false;
+    setSyncStatus('error', e.message);
+    toast('Sin conexión a la nube — datos locales activos', 'warn');
+    setTimeout(reintentarNube, 8000);
   }
 })();
 
