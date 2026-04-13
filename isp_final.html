@@ -226,7 +226,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ISP — Gestión de Actividades</title>
+<title>DMI — Gestión de Actividades</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1099,10 +1099,10 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <!-- HEADER -->
 <header>
   <div class="hd-left">
-    <div class="hd-logo">ISP</div>
+    <div class="hd-logo">DMI</div>
     <div>
-      <div class="hd-name">Instituto Salvadoreño de Pensiones</div>
-      <div class="hd-sub">Unidad de Mantenimiento · Infraestructura</div>
+      <div class="hd-name">Dirección de Mantenimiento e Infraestructura</div>
+      <div class="hd-sub">Instituto Salvadoreño de Pensiones</div>
     </div>
   </div>
   <div class="hd-right">
@@ -1262,7 +1262,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="rpt-head">
       <div>
         <div class="rpt-title">Informe del Día — <span id="rptDate">20/03/2026</span></div>
-        <div class="rpt-sub">Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento</div>
+        <div class="rpt-sub">Dirección de Mantenimiento e Infraestructura · Instituto Salvadoreño de Pensiones</div>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap">
         <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
@@ -2449,7 +2449,7 @@ function abrirHoja(area){
   const rows=asigs.filter(a=>a.area===area);
   const noDisp=personal.filter(p=>p.status!=='libre');
   const col=ACOL[area]||'#525252';
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ISP — ${area}</title>
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DMI — ${area}</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
   <style>
   *{box-sizing:border-box;margin:0;padding:0}
@@ -2600,13 +2600,13 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 .save-fsa-note{font-size:11px;color:var(--t3);margin-top:6px;padding:7px 10px;background:var(--surface2);border-radius:var(--r-xs);line-height:1.5}
 
 </style></head><body><div class="pg">
-  <div class="hdr"><div class="hdr-r"><span class="logo">ISP</span><span style="font-size:12px;opacity:.75;font-weight:600">${date}</span></div><div class="area-n">${area}</div><div style="font-size:12px;opacity:.75">${fmtL(date)}</div></div>
+  <div class="hdr"><div class="hdr-r"><span class="logo">DMI</span><span style="font-size:12px;opacity:.75;font-weight:600">${date}</span></div><div class="area-n">${area}</div><div style="font-size:12px;opacity:.75">${fmtL(date)}</div></div>
   <div class="nota"><strong>⚠ Nota:</strong> ${nota}</div>
   <table><thead><tr><th class="num">#</th><th>Colaborador</th><th>Actividad del día</th><th>Hora</th><th style="text-align:center">✓</th></tr></thead><tbody>
   ${rows.map((a,i)=>{const pp=personal.find(x=>x.id===a.pid);const sp=pp?.specs?.length?`<div><span class="spec">🔧 ${pp.specs.join(' · ')}</span></div>`:'';return`<tr><td class="num">${i+1}</td><td><div class="nomb">${a.nombre}</div>${sp}</td><td class="act">${a.actividad}</td><td class="hora">${a.hora||'6:30 am'}</td><td style="text-align:center"><span class="cb"></span></td></tr>`;}).join('')}
   </tbody></table>
   ${noDisp.length?`<div style="margin-top:14px;padding:10px 14px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:10px;font-size:12px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · ')}</div>`:''}
-  <div class="foot"><span class="ft">Instituto Salvadoreño de Pensiones · Uso interno</span><button class="pbtn np" onclick="window.print()">🖨 Imprimir / PDF</button></div>
+  <div class="foot"><span class="ft">DMI · Instituto Salvadoreño de Pensiones · Uso interno</span><button class="pbtn np" onclick="window.print()">🖨 Imprimir / PDF</button></div>
   </div></body></html>`;
   const w=window.open('','_blank');w.document.write(html);w.document.close();
 }
@@ -2729,7 +2729,7 @@ function buildExcelPreview(date){
     <div style="padding:0">
       <div style="background:#1A7F4B;padding:14px 18px;display:flex;align-items:center;gap:10px">
         <div style="width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px">📊</div>
-        <div><div style="font-size:14px;font-weight:700;color:#fff">ISP_Actividades_${date}.xlsx</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">${sheets.length} hojas · Instituto Salvadoreño de Pensiones</div></div>
+        <div><div style="font-size:14px;font-weight:700;color:#fff">DMI_Actividades_${date}.xlsx</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">${sheets.length} hojas · Dirección de Mantenimiento e Infraestructura</div></div>
       </div>
       <div class="xls-prev">
         <div class="xls-sheet-tabs" id="xlsTabs">${tabsHtml}</div>
@@ -2747,7 +2747,7 @@ function xRow(cells,hdr=false){
   return`<tr>${cells.map(c=>`<t${hdr?'h':'d'} style="padding:7px 10px;border-bottom:1px solid #E8E6E1;color:${co};font-size:${hdr?'11':'12'}px;font-weight:${fw};background:${bg};white-space:nowrap">${c||'—'}</t${hdr?'h':'d'}>`).join('')}</tr>`;
 }
 function buildResumenSheet(date,total,done,pct,noDisp,C){
-  const rows=[['Instituto Salvadoreño de Pensiones',''],['Programación — '+date,''],['',''],['INDICADOR','VALOR'],
+  const rows=[['Dirección de Mantenimiento e Infraestructura',''],['Programación — '+date,''],['',''],['INDICADOR','VALOR'],
     ['Total personal',total],['Asignados hoy',asigs.length],
     ['Sin asignar',personal.filter(p=>p.status==='libre'&&!isAsig(p.id)).length],
     ['Compensatorios',personal.filter(p=>p.status==='compensatorio').length],
@@ -2813,7 +2813,7 @@ function buildPlanPreview(date){
     let html=`<div style="font-family:'DM Sans',sans-serif;font-size:13px;color:#1A1A2E">
       <div style="background:${col};padding:18px 20px;color:#fff">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <span style="background:rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700">ISP</span>
+          <span style="background:rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700">DMI</span>
           <span style="font-size:12px;opacity:.8;font-weight:600">${date}</span>
         </div>
         <div style="font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:3px">${area}</div>
@@ -2843,7 +2843,7 @@ function buildPlanPreview(date){
     });
     html+=`</tbody></table>`;
     if(noDisp.length&&expSc.n)html+=`<div style="margin:12px;padding:9px 12px;background:#EEF0FF;border:1px solid #C5C0F5;border-radius:8px;font-size:11px;color:#7B68EE;font-weight:600"><strong>No disponibles:</strong> ${noDisp.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':'Incap.'})`).join(' · ')}</div>`;
-    html+=`<div style="margin:12px;padding-top:10px;border-top:1px solid #E8E6E1;display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#AEA9BF">Instituto Salvadoreño de Pensiones · Uso interno</span></div></div>`;
+    html+=`<div style="margin:12px;padding-top:10px;border-top:1px solid #E8E6E1;display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:#AEA9BF">DMI · Instituto Salvadoreño de Pensiones · Uso interno</span></div></div>`;
     pages.push(html);
   });
   return pages;
@@ -2861,7 +2861,7 @@ function buildInformePreview(date){
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#7B68EE,#6456D0);padding:22px 22px 18px;color:#fff">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div style="width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800">ISP</div>
+        <div style="width:32px;height:32px;background:rgba(255,255,255,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800">DMI</div>
         <div><div style="font-size:16px;font-weight:800">Reporte Final de Actividades</div><div style="font-size:11px;opacity:.75;margin-top:1px">${ds}</div></div>
       </div>
     </div>
@@ -2919,7 +2919,7 @@ function buildInformePreview(date){
     });
     html+=`</div>`;
   });
-  html+=`<div style="margin:12px;padding-top:10px;border-top:1px solid #E8E6E1;font-size:10px;color:#AEA9BF;text-align:center">Generado: ${new Date().toLocaleString('es-SV')} · Instituto Salvadoreño de Pensiones</div></div>`;
+  html+=`<div style="margin:12px;padding-top:10px;border-top:1px solid #E8E6E1;font-size:10px;color:#AEA9BF;text-align:center">Generado: ${new Date().toLocaleString('es-SV')} · Dirección de Mantenimiento e Infraestructura</div></div>`;
   return [html];
 }
 
@@ -2933,10 +2933,10 @@ function buildWordPreview(date){
   
   let html=`<div style="font-family:Georgia,serif;color:#1A1A2E;padding:28px 32px;line-height:1.6">
     <div style="border-bottom:3px solid #7B68EE;padding-bottom:12px;margin-bottom:8px">
-      <div style="font-size:22px;font-weight:700;color:#7B68EE">Instituto Salvadoreño de Pensiones</div>
+      <div style="font-size:22px;font-weight:700;color:#7B68EE">Dirección de Mantenimiento e Infraestructura</div>
     </div>
     <div style="font-size:16px;font-weight:600;color:#1A1A2E;margin-bottom:4px">Reporte Final de Actividades</div>
-    <div style="font-size:11px;color:#6E6B80;margin-bottom:20px">${ds} · Unidad de Mantenimiento</div>
+    <div style="font-size:11px;color:#6E6B80;margin-bottom:20px">${ds} · Instituto Salvadoreño de Pensiones</div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:18px;font-family:Calibri,sans-serif">
       <tr>
         <td style="background:#EEF0FF;padding:12px;text-align:center;border:1px solid #C5C0F5"><div style="font-size:22px;font-weight:800;color:#7B68EE">${total}</div><div style="font-size:9px;color:#6E6B80;text-transform:uppercase;letter-spacing:.8px">Total</div></td>
@@ -2967,7 +2967,7 @@ function buildWordPreview(date){
     </table>`;
   });
 
-  html+=`<div style="padding-top:10px;border-top:1px solid #E8E6E1;font-size:10px;color:#AEA9BF;font-family:Calibri,sans-serif">Generado: ${new Date().toLocaleString('es-SV')} · Instituto Salvadoreño de Pensiones</div></div>`;
+  html+=`<div style="padding-top:10px;border-top:1px solid #E8E6E1;font-size:10px;color:#AEA9BF;font-family:Calibri,sans-serif">Generado: ${new Date().toLocaleString('es-SV')} · Dirección de Mantenimiento e Infraestructura</div></div>`;
   return [html];
 }
 
@@ -3051,9 +3051,9 @@ function expPDFPlan(){
     sf(C.br);doc.rect(0,0,W,18,'F');
     // Logo box
     sf([255,255,255]);doc.roundedRect(9,4,11,10,1.5,1.5,'F');
-    st(C.br);ff('bold',6.5);doc.text('ISP',14.5,11,{align:'center'});
+    st(C.br);ff('bold',6.5);doc.text('DMI',14.5,11,{align:'center'});
     // Title
-    st([255,255,255]);ff('bold',12);doc.text('INSTITUTO SALVADOREÑO DE PENSIONES',26,10);
+    st([255,255,255]);ff('bold',12);doc.text('DIRECCIÓN DE MANTENIMIENTO E INFRAESTRUCTURA',26,10);
     ff('normal',7);doc.text('PROGRAMACIÓN DE ACTIVIDADES — '+date,26,15);
     // Date badge
     sf([255,255,255]);doc.setFillColor(255,255,255,0.15);doc.roundedRect(W-38,3,34,12,2,2,'F');
@@ -3119,7 +3119,7 @@ function expPDFPlan(){
   for(let i=1;i<=tp;i++){
     doc.setPage(i);sf(C.bg);doc.rect(0,H-10,W,10,'F');
     sf(C.br);doc.rect(0,H-10,2,10,'F');
-    st(C.t3);ff('normal',7);doc.text('Instituto Salvadoreño de Pensiones — Uso interno',14,H-3.5);
+    st(C.t3);ff('normal',7);doc.text('DMI · Instituto Salvadoreño de Pensiones — Uso interno',14,H-3.5);
     doc.text(`Pág. ${i} de ${tp}`,W-14,H-3.5,{align:'right'});
   }
   const pdfBlob1=new Blob([doc.output('arraybuffer')],{type:'application/pdf'});
@@ -3143,9 +3143,9 @@ function expPDFInforme(){
   function phdr(){
     sf(C.br);doc.rect(0,0,W,18,'F');
     sf([255,255,255]);doc.roundedRect(9,4,11,10,1.5,1.5,'F');
-    st(C.br);ff('bold',6.5);doc.text('ISP',14.5,11,{align:'center'});
+    st(C.br);ff('bold',6.5);doc.text('DMI',14.5,11,{align:'center'});
     st([255,255,255]);ff('bold',11);doc.text('REPORTE FINAL DE ACTIVIDADES DEL DÍA',26,10);
-    ff('normal',7);doc.text(`${date} · Instituto Salvadoreño de Pensiones`,26,15);
+    ff('normal',7);doc.text(`${date} · Dirección de Mantenimiento e Infraestructura`,26,15);
     y=24;
   }
   function chy(n){if(y+n>H-14){doc.addPage();phdr();}}
@@ -3240,7 +3240,7 @@ function expPDFInforme(){
   const tp=doc.internal.getNumberOfPages();
   for(let i=1;i<=tp;i++){
     doc.setPage(i);sf(C.bg);doc.rect(0,H-10,W,10,'F');sf(C.br);doc.rect(0,H-10,2,10,'F');
-    st(C.t3);ff('normal',7);doc.text(`Generado: ${new Date().toLocaleString('es-SV')} · ISP`,14,H-3.5);doc.text(`Pág. ${i} de ${tp}`,W-14,H-3.5,{align:'right'});
+    st(C.t3);ff('normal',7);doc.text(`Generado: ${new Date().toLocaleString('es-SV')} · DMI`,14,H-3.5);doc.text(`Pág. ${i} de ${tp}`,W-14,H-3.5,{align:'right'});
   }
   const pdfBlob2=new Blob([doc.output('arraybuffer')],{type:'application/pdf'});
   smartDownload(pdfBlob2,`ISP_Reporte_Final_${date}.pdf`);
@@ -3254,7 +3254,7 @@ function expWord(){
   const noDisp=personal.filter(p=>p.status!=='libre');
   const grp={};asigs.forEach(a=>{if(!grp[a.area])grp[a.area]=[];grp[a.area].push(a);});
 
-  let body=`<h1 style="font-size:20pt;color:#7B68EE;border-bottom:3pt solid #7B68EE;padding-bottom:8pt;font-family:Georgia,serif">Instituto Salvadoreño de Pensiones</h1>
+  let body=`<h1 style="font-size:20pt;color:#7B68EE;border-bottom:3pt solid #7B68EE;padding-bottom:8pt;font-family:Georgia,serif">Dirección de Mantenimiento e Infraestructura</h1>
   <h2 style="font-size:14pt;color:#1A1A2E;margin-bottom:4pt">Reporte Final de Actividades</h2>
   <p style="font-size:10pt;color:#6E6B80;margin-bottom:16pt">${ds} &nbsp;·&nbsp; Unidad de Mantenimiento</p>
   <table width="100%" style="border-collapse:collapse;margin-bottom:18pt">
@@ -3303,7 +3303,7 @@ function expWord(){
     </table>`;
   });
 
-  body+=`<p style="font-size:8pt;color:#AEA9BF;border-top:1pt solid #E8E6E1;padding-top:7pt;margin-top:16pt">Generado: ${new Date().toLocaleString('es-SV')} · Instituto Salvadoreño de Pensiones · Uso interno</p>`;
+  body+=`<p style="font-size:8pt;color:#AEA9BF;border-top:1pt solid #E8E6E1;padding-top:7pt;margin-top:16pt">Generado: ${new Date().toLocaleString('es-SV')} · DMI · Instituto Salvadoreño de Pensiones · Uso interno</p>`;
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:2cm;font-family:Calibri,sans-serif}table{page-break-inside:auto}tr{page-break-inside:avoid}h3{page-break-after:avoid}
 /* ══ GOOGLE DRIVE SAVE ══ */
@@ -4367,7 +4367,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <h1>${titulo}</h1><div class="sub">${sub} · Generado: ${new Date().toLocaleString('es-SV')}</div>
   <div class="kpis">${kpisEl.innerHTML}</div>
   ${bodyEl.innerHTML}
-  <footer>Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento · Uso interno</footer>
+  <footer>Dirección de Mantenimiento e Infraestructura · Instituto Salvadoreño de Pensiones · Uso interno</footer>
   </body></html>`;
 
   const w=window.open('','_blank');
@@ -4736,7 +4736,7 @@ function expInformePeriodo(tipo){
   const fechaGen=new Date().toLocaleString('es-SV');
   const pctColor=_pctColor(pctGlobal);
 
-  const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ISP \u2014 '+titulo+'</title>'
+  const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DMI \u2014 '+titulo+'</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">'
     +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'DM Sans\',sans-serif;background:#F0F4F8;color:#1A1A2E;font-size:13px;line-height:1.55}.pg{max-width:900px;margin:0 auto;padding:28px 24px}'
     +'.hdr{background:linear-gradient(135deg,#003F87,#0056B8);border-radius:14px;padding:24px;margin-bottom:20px;color:#fff;border-bottom:3px solid #C8A84B}'
@@ -4756,8 +4756,8 @@ function expInformePeriodo(tipo){
     +'@media print{body{background:#fff}.actions{display:none!important}.pg{padding:12px}.section{box-shadow:none;border:1px solid #DDE6EE}.hdr{border-radius:8px}@page{margin:1.5cm}}'
     +'@media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}}'
     +'</style></head><body><div class="pg">'
-    +'<div class="hdr"><div class="hdr-top"><span class="logo">ISP</span><span style="font-size:11px;opacity:.75">Generado: '+fechaGen+'</span></div>'
-    +'<div class="hdr-title">'+titulo+'</div><div class="hdr-sub">Instituto Salvadore\u00f1o de Pensiones \u00b7 Unidad de Mantenimiento \u00b7 '+periodoStr+'</div></div>'
+    +'<div class="hdr"><div class="hdr-top"><span class="logo">DMI</span><span style="font-size:11px;opacity:.75">Generado: '+fechaGen+'</span></div>'
+    +'<div class="hdr-title">'+titulo+'</div><div class="hdr-sub">Dirección de Mantenimiento e Infraestructura \u00b7 Instituto Salvadore\u00f1o de Pensiones \u00b7 '+periodoStr+'</div></div>'
     +'<div class="actions"><button class="btn btn-blue" onclick="window.print()">\uD83D\uDDA8 Imprimir / Guardar PDF</button><button class="btn btn-green" onclick="descargarExcel()">\uD83D\uDCCA Descargar Excel</button></div>'
     +'<div class="kpi-row">'
     +'<div class="kpi" style="border-top-color:#003F87"><div class="kpi-v" style="color:#003F87">'+totalDias+'</div><div class="kpi-l">D\u00edas registrados</div></div>'
@@ -4772,7 +4772,7 @@ function expInformePeriodo(tipo){
     +'<table><thead><tr><th>\u00c1rea</th><th style="text-align:center">Activ.</th><th style="text-align:center">Cumplidas</th><th style="text-align:center">Avance</th><th style="text-align:center">% Cumpl.</th></tr></thead>'
     +'<tbody>'+areaTableRows+'</tbody></table></div>'
     +'<div class="section"><div class="sec-head">\uD83D\uDCC5 Detalle por d\u00eda</div>'+diaRows+'</div>'
-    +'<footer>Instituto Salvadore\u00f1o de Pensiones \u00b7 Unidad de Mantenimiento \u00b7 '+fechaGen+'</footer>'
+    +'<footer>Dirección de Mantenimiento e Infraestructura \u00b7 Instituto Salvadore\u00f1o de Pensiones \u00b7 '+fechaGen+'</footer>'
     +'</div>'
     +'<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>'
     +'<script>'
@@ -4853,11 +4853,11 @@ function abrirHojaColaboradores(){
   const notaSection=nota?'<div class="nota">\u26a0 <strong>Nota del d\u00eda:</strong> '+nota+'</div>':'';
   const fechaGen2=new Date().toLocaleString('es-SV');
   const totalAsigs=asigs.length;
-  const waText=encodeURIComponent('ISP \u2014 Programaci\u00f3n de Actividades\n'+dateStr+'\n'+totalAsigs+' actividades asignadas\nInstituto Salvadore\u00f1o de Pensiones');
+  const waText=encodeURIComponent('DMI \u2014 Programaci\u00f3n de Actividades\n'+dateStr+'\n'+totalAsigs+' actividades asignadas\nInstituto Salvadore\u00f1o de Pensiones');
 
   const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
     +'<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">'
-    +'<title>ISP \u2014 Actividades '+date+'</title>'
+    +'<title>DMI \u2014 Actividades '+date+'</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">'
     +'<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
@@ -4904,9 +4904,9 @@ function abrirHojaColaboradores(){
     +'.pg{padding:10px}'
     +'}'
     +'</style></head><body><div class="pg">'
-    +'<div class="hdr"><div class="hdr-l"><div class="logo">ISP</div>'
+    +'<div class="hdr"><div class="hdr-l"><div class="logo">DMI</div>'
     +'<div><div class="hdr-title">Programaci\u00f3n de Actividades</div>'
-    +'<div class="hdr-sub">Unidad de Mantenimiento \u00b7 Instituto Salvadore\u00f1o de Pensiones</div></div></div>'
+    +'<div class="hdr-sub">Dirección de Mantenimiento e Infraestructura \u00b7 Instituto Salvadore\u00f1o de Pensiones</div></div></div>'
     +'<div class="hdr-date"><div class="hdr-date-l">Fecha</div><div class="hdr-date-v">'+dateShort+'</div></div></div>'
     +'<div class="actions">'
     +'<button class="btn btn-blue" onclick="window.print()">\uD83D\uDDA8 Imprimir / PDF</button>'
@@ -4917,7 +4917,7 @@ function abrirHojaColaboradores(){
     +noDispSection
     +areasHtml
     +'<div class="foot">'
-    +'<div class="ft">ISP \u2014 Instituto Salvadore\u00f1o de Pensiones \u00b7 Unidad de Mantenimiento</div>'
+    +'<div class="ft">DMI \u2014 Dirección de Mantenimiento e Infraestructura \u00b7 Instituto Salvadore\u00f1o de Pensiones</div>'
     +'<div class="ft">Generado: '+fechaGen2+'</div>'
     +'</div>'
     +'</div></body></html>';
@@ -5114,9 +5114,9 @@ async function exportarJPG() {
   const html = `<div style="width:1080px;background:#fff;padding:0;font-family:'Segoe UI',Arial,sans-serif">
     <div style="background:linear-gradient(135deg,#003F87 0%,#005ABF 100%);padding:32px 40px;display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:2px">ISP</div>
-        <div style="font-size:13px;color:#C8D8F0;margin-top:4px;font-weight:500">Instituto Salvadoreño de Pensiones</div>
-        <div style="font-size:12px;color:#A0B8D8;margin-top:2px">Unidad de Mantenimiento · Infraestructura</div>
+        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:2px">DMI</div>
+        <div style="font-size:13px;color:#C8D8F0;margin-top:4px;font-weight:500">Dirección de Mantenimiento e Infraestructura</div>
+        <div style="font-size:12px;color:#A0B8D8;margin-top:2px">Instituto Salvadoreño de Pensiones</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:13px;color:#C8D8F0;font-weight:500">Programación del día</div>
@@ -5153,7 +5153,7 @@ async function exportarJPG() {
     ${nota ? `<div style="background:#FFF8E6;border-left:4px solid #C8A84B;padding:12px 40px;font-size:12px;color:#7A5A10"><strong>📌 Nota del día:</strong> ${nota}</div>` : ''}
     <div style="padding:24px 40px">${areasHtml}</div>
     <div style="background:#F8FAFC;border-top:1px solid #DDE6EE;padding:14px 40px;display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:11px;color:#94a3b8">ISP — Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento</div>
+      <div style="font-size:11px;color:#94a3b8">DMI — Dirección de Mantenimiento e Infraestructura · Instituto Salvadoreño de Pensiones</div>
       <div style="font-size:11px;color:#94a3b8">Generado: ${new Date().toLocaleString('es-SV')}</div>
     </div>
   </div>`;
@@ -5168,7 +5168,7 @@ async function exportarJPG() {
     const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
     document.body.removeChild(wrapper);
     const link = document.createElement('a');
-    link.download = 'ISP_Programacion_' + date + '.jpg';
+    link.download = 'DMI_Programacion_' + date + '.jpg';
     link.href = canvas.toDataURL('image/jpeg', 0.92);
     link.click();
     toast('✓ Imagen JPG descargada — lista para compartir por WhatsApp');
@@ -5244,8 +5244,8 @@ function exportarExcelModerno() {
 </style>
 </head><body>
 <table>
-  <tr><td class="hdr-cell" colspan="9">ISP</td></tr>
-  <tr><td class="sub-cell" colspan="9">Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento</td></tr>
+  <tr><td class="hdr-cell" colspan="9">DMI</td></tr>
+  <tr><td class="sub-cell" colspan="9">Dirección de Mantenimiento e Infraestructura · Instituto Salvadoreño de Pensiones</td></tr>
   <tr><td class="title-cell" colspan="9">📋 PROGRAMACIÓN DIARIA — ${dateStr.toUpperCase()}</td></tr>
   <tr>
     <td class="kpi-cell" colspan="2">${asigs.length}</td>
@@ -5377,9 +5377,9 @@ function exportarWordSeguimiento() {
 <!-- ENCABEZADO -->
 <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid #003F87;margin-bottom:20px">
   <div>
-    <div style="font-size:36px;font-weight:900;color:#003F87;letter-spacing:3px;line-height:1">ISP</div>
-    <div style="font-size:13px;color:#475569;margin-top:4px">Instituto Salvadoreño de Pensiones</div>
-    <div style="font-size:12px;color:#94a3b8">Unidad de Mantenimiento · Infraestructura</div>
+    <div style="font-size:36px;font-weight:900;color:#003F87;letter-spacing:3px;line-height:1">DMI</div>
+    <div style="font-size:13px;color:#475569;margin-top:4px">Dirección de Mantenimiento e Infraestructura</div>
+    <div style="font-size:12px;color:#94a3b8">Instituto Salvadoreño de Pensiones</div>
   </div>
   <div style="text-align:right">
     <div style="font-size:18px;font-weight:700;color:#003F87;text-transform:capitalize">${dateStr}</div>
@@ -5441,7 +5441,7 @@ ${ndSection}
 </div>
 
 <div style="margin-top:30px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #F0F4F8;padding-top:10px">
-  ISP — Instituto Salvadoreño de Pensiones · Unidad de Mantenimiento · Infraestructura<br>
+  DMI — Dirección de Mantenimiento e Infraestructura · Instituto Salvadoreño de Pensiones<br>
   Documento generado automáticamente el ${fechaGen}
 </div>
 </body></html>`;
