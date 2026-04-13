@@ -1099,7 +1099,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <!-- HEADER -->
 <header>
   <div class="hd-left">
-    <div class="hd-logo"><img src="ISP COLR.png" alt="DDMI Logo"></div>
+    <div class="hd-logo"><img src="ISP COLR.png" alt="Instituto Salvadoreño de Pensiones"></div>
     <div>
       <div class="hd-name">Depto. de Desarrollo y Mant. de Infraestructura</div>
       <div class="hd-sub">DEPARTAMENTO DE DESARROLLO Y MANTENIMIENTO DE INFRAESTRUCTURA</div>
@@ -1440,7 +1440,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <input type="text" id="newAreaInp" placeholder="Nueva área…" style="flex:1;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--surface2);color:var(--t1);padding:8px 12px;font-size:13px;font-family:inherit" onkeydown="if(event.key==='Enter'){addAreaFromModal();event.preventDefault()}">
       <button class="btn btn-primary btn-sm" onclick="addAreaFromModal()">+ Agregar</button>
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeAreasModal()">Cerrar</button></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeAreasModal()">Cerrar</button><button class="btn btn-ghost btn-sm" style="color:var(--t3);font-size:11px" onclick="restoreDefaultAreas()">↺ Restaurar predeterminadas</button></div>
   </div>
 </div>
 
@@ -3911,6 +3911,17 @@ function deleteArea(idx){
   populateAreaSelects();
   renderAreasList();
   toast('Área "'+name+'" eliminada','warn');
+}
+
+function restoreDefaultAreas(){
+  if(!confirm('¿Restaurar las áreas predeterminadas? Se agregarán las áreas que no existan actualmente.')) return;
+  DEFAULT_AREAS.forEach(a=>{
+    if(!AREAS.some(x=>x.toLowerCase()===a.toLowerCase())) AREAS.push(a);
+  });
+  localStorage.setItem(LS_AREAS,JSON.stringify(AREAS));
+  populateAreaSelects();
+  renderAreasList();
+  toast('Áreas predeterminadas restauradas','ok');
 }
 
 function updateMemPill(){
