@@ -1188,8 +1188,10 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
       <span class="fc-cur" id="fcLabel">100%</span>
       <button onclick="adjZoom(1)" aria-label="Aumentar texto">A+</button>
     </div>
-    <div id="syncPill" title="Toca para reconectar" onclick="reintentarNube()" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:pointer">☁ Conectando…</div>
+    <div id="syncPill" title="Toca para reconectar / mantén presionado para diagnóstico" onclick="reintentarNube()" oncontextmenu="event.preventDefault();diagFirebase()" ondblclick="diagFirebase()" style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#E8EFF8;color:#003F87;display:flex;align-items:center;gap:4px;cursor:pointer">☁ Conectando…</div>
     <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportarDatos()" title="Exportar todos los datos para abrir en otro dispositivo">↑ Backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="importarDatos()" title="Importar datos desde otro dispositivo">↓ Importar</button>
     <button class="btn btn-gold btn-sm" onclick="exportarJPG()">📸 JPG</button>
     <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
     <button class="btn btn-primary btn-sm" onclick="abrirExport()">⬇ Exportar</button>
@@ -1202,9 +1204,10 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <button class="btn btn-gold btn-sm" onclick="abrirCompartir()">📤 Compartir</button>
   <button class="btn btn-primary btn-sm" onclick="abrirExport()">⬇ Exportar</button>
   <button class="btn btn-ghost btn-sm" onclick="openNota()">✏ Nota</button>
-  <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Imprimir</button>
-  <button class="btn btn-ghost btn-sm" onclick="adjZoom(-1)" title="Reducir texto" style="letter-spacing:-.5px">A−</button>
-  <button class="btn btn-ghost btn-sm" onclick="adjZoom(1)" title="Aumentar texto" style="font-weight:800;letter-spacing:-.5px">A+</button>
+  <button class="btn btn-ghost btn-sm" onclick="exportarDatos()">↑ Backup</button>
+  <button class="btn btn-ghost btn-sm" onclick="importarDatos()">↓ Importar</button>
+  <button class="btn btn-ghost btn-sm" onclick="adjZoom(-1)" style="letter-spacing:-.5px">A−</button>
+  <button class="btn btn-ghost btn-sm" onclick="adjZoom(1)" style="font-weight:800;letter-spacing:-.5px">A+</button>
   <button class="btn btn-mint btn-sm" id="btnInstalarPWA" onclick="instalarPWA()" style="display:none">⬇ Instalar App</button>
 </div>
 
@@ -6265,6 +6268,70 @@ async function reintentarNube() {
   }
   setSyncStatus('loading');
   try { await loadFromFirebase(); } catch(e) { setSyncStatus('error'); }
+}
+
+/* ── Diagnóstico Firebase ── */
+function diagFirebase() {
+  const err = _lastFireError;
+  const code = err ? (err.code || err.message || String(err)) : 'Sin error registrado';
+  const soluciones = {
+    'permission-denied': '➜ Las reglas de Firestore están vencidas.\n\nVe a console.firebase.google.com → isp-mantenimiento → Firestore Database → Reglas → pega:\n\nrules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /isp/{document=**} {\n      allow read, write: if true;\n    }\n  }\n}\n\nLuego click Publicar.',
+    'unavailable': '➜ Sin conexión a internet o Firebase caído.\nIntenta de nuevo cuando tengas red.',
+    'not-found': '➜ Documento no existe aún. Esto se crea automáticamente al guardar.',
+  };
+  const sol = soluciones[err?.code] || '➜ Código de error: ' + code + '\n\nContacta soporte con este código.';
+  alert('🔍 Diagnóstico Firebase\n\nError: ' + code + '\n\n' + sol);
+}
+
+/* ── EXPORTAR datos para sincronizar entre dispositivos ── */
+function exportarDatos() {
+  const payload = {
+    v: 1, ts: new Date().toISOString(),
+    personal, actFrec, proyectos, historial,
+    diaActual: {
+      fecha: document.getElementById('globalDate').value,
+      asigs: asigs.map(a => ({...a, fotos:[]})), // sin fotos (muy grandes)
+      nota, nAid
+    }
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  smartDownload(blob, `ISP_datos_${new Date().toISOString().split('T')[0]}.json`);
+  toast('✓ Datos exportados — comparte el archivo por WhatsApp o email');
+}
+
+/* ── IMPORTAR datos desde otro dispositivo ── */
+function importarDatos() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (!d.personal || !d.diaActual) { toast('Archivo no válido', 'err'); return; }
+        if (!confirm(`¿Importar datos de ${d.ts ? new Date(d.ts).toLocaleString('es-SV') : 'fecha desconocida'}?\n\nEsto reemplazará los datos actuales en este dispositivo.`)) return;
+        personal  = d.personal  || personal;
+        actFrec   = d.actFrec   || actFrec;
+        proyectos = d.proyectos || proyectos;
+        historial = d.historial || historial;
+        if (d.diaActual) {
+          asigs = d.diaActual.asigs || [];
+          nota  = d.diaActual.nota  || '';
+          nAid  = d.diaActual.nAid  || 1;
+          const dp = document.getElementById('globalDate');
+          if (dp && d.diaActual.fecha) dp.value = d.diaActual.fecha;
+        }
+        saveMemory();
+        renderPool(); renderAssigned(); chips(); renderQuickActs();
+        updateProjSel(); renderHistorial(); renderPersonal();
+        toast('✓ Datos importados correctamente');
+      } catch(err) { toast('Error al leer archivo: ' + err.message, 'err'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }
 
 /* ── Sync status pill ── */
