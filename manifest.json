@@ -1,0 +1,37 @@
+{
+  "name": "ISP — Gestión de Actividades",
+  "short_name": "ISP Mant.",
+  "description": "Programación diaria de actividades de mantenimiento — Instituto Salvadoreño de Pensiones",
+  "start_url": "/dmi/",
+  "scope": "/dmi/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0A1F5C",
+  "theme_color": "#0A1F5C",
+  "lang": "es",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/dmi/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/dmi/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nueva Asignación",
+      "short_name": "Asignar",
+      "description": "Abrir pantalla de asignación",
+      "url": "/dmi/",
+      "icons": [{ "src": "/dmi/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

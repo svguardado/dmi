@@ -227,6 +227,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>ISP — Gestión de Actividades</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/dmi/manifest.json">
+<meta name="theme-color" content="#0A1F5C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ISP Mant.">
+<link rel="apple-touch-icon" href="/dmi/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/dmi/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/dmi/icons/icon-512.png">
+
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1193,6 +1205,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Imprimir</button>
   <button class="btn btn-ghost btn-sm" onclick="adjZoom(-1)" title="Reducir texto" style="letter-spacing:-.5px">A−</button>
   <button class="btn btn-ghost btn-sm" onclick="adjZoom(1)" title="Aumentar texto" style="font-weight:800;letter-spacing:-.5px">A+</button>
+  <button class="btn btn-mint btn-sm" id="btnInstalarPWA" onclick="instalarPWA()" style="display:none">⬇ Instalar App</button>
 </div>
 
 <!-- NAV -->
@@ -6558,5 +6571,33 @@ function nuevoDia() {
 
 
 </script>
+
+<!-- PWA: Registro del Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/dmi/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.warn('SW error:', err));
+  });
+}
+
+// Banner de instalación (Android Chrome)
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  const btn = document.getElementById('btnInstalarPWA');
+  if (btn) btn.style.display = '';
+});
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('btnInstalarPWA');
+  if (btn) btn.style.display = 'none';
+  toast('✓ App instalada en tu pantalla de inicio');
+});
+function instalarPWA() {
+  if (_pwaPrompt) { _pwaPrompt.prompt(); _pwaPrompt = null; }
+}
+</script>
 </body>
-</html><!-- NEW FEATURES ADDED: JPG export, modern Excel, Seguimiento module -->
+</html>
