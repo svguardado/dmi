@@ -6255,7 +6255,7 @@ async function reintentarNube() {
 }
 
 /* ── Sync status pill ── */
-function setSyncStatus(st) {
+function setSyncStatus(st, detail) {
   const el = document.getElementById('syncPill');
   if (!el) return;
   const cfg = {
@@ -6266,7 +6266,7 @@ function setSyncStatus(st) {
     ok:      ['☁ Nube',       '#E8EFF8', '#003F87'],
   };
   const [txt, bg, col] = cfg[st] || cfg.ok;
-  el.textContent = txt;
+  el.textContent = txt + (detail ? ` (${detail})` : '');
   el.style.background = bg;
   el.style.color = col;
   if (st === 'saved') setTimeout(() => setSyncStatus('ok'), 3000);
@@ -6374,50 +6374,36 @@ async function loadFromFirebase() {
     setSyncStatus('ok');
     toast('✓ Datos cargados desde la nube');
   } catch (e) {
+    _lastFireError = e;
     console.error('Firebase load error:', e.code || e.message, e);
-    setSyncStatus('error');
-    if (e.code === 'permission-denied') {
-      toast('⚠ Firestore: permiso denegado — revisa las reglas del proyecto', 'err');
-    } else if (e.code === 'unavailable' || e.message?.includes('network')) {
-      toast('ℹ Sin internet — datos locales activos', 'warn');
+    const code = e.code || 'unknown';
+    setSyncStatus('error', code);
+    if (code === 'permission-denied') {
+      toast('⚠ Reglas de Firestore vencidas — toca ⚠ Sin nube para instrucciones', 'err');
+    } else if (code === 'unavailable') {
+      toast('ℹ Sin internet — usando datos locales', 'warn');
     } else {
-      toast('ℹ Trabajando sin internet — datos locales activos', 'warn');
+      toast(`ℹ Nube: ${code} — toca ⚠ Sin nube para detalles`, 'warn');
     }
   }
 }
 
 /* ── Init Firebase on page load ── */
+let _lastFireError = null;
 (async function initFire() {
   try {
-    // Guard: evitar doble inicialización en recargas
     fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
-    db      = firebase.firestore();
-    // Habilitar caché offline para funcionar sin internet
-    try { await db.enablePersistence({synchronizeTabs:true}); } catch(pe) {
-      if(pe.code !== 'failed-precondition' && pe.code !== 'unimplemented')
-        console.warn('Persistence:', pe.code);
-    }
-    FDOC    = db.collection('isp').doc('datos');
+    db = firebase.firestore();
+    // Configurar caché offline sin enablePersistence (más compatible)
+    FDOC = db.collection('isp').doc('datos');
     _fireReady = true;
     setSyncStatus('loading');
     await loadFromFirebase();
   } catch (e) {
+    _lastFireError = e;
     console.error('Firebase init error:', e.code || e.message, e);
-    setSyncStatus('error');
-    // Reintento automático tras 8 segundos
-    setTimeout(async () => {
-      try {
-        if (!_fireReady) {
-          fireApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIRE_CFG);
-          db = firebase.firestore();
-          FDOC = db.collection('isp').doc('datos');
-          _fireReady = true;
-        }
-        setSyncStatus('loading');
-        await loadFromFirebase();
-      } catch(e2) { setSyncStatus('error'); }
-    }, 8000);
-    toast('ℹ Sin conexión — reintentando…', 'warn');
+    setSyncStatus('error', e.code || e.message);
+    setTimeout(() => reintentarNube(), 10000);
   }
 })();
 
