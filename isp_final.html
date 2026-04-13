@@ -1767,7 +1767,7 @@ const PCOLORS=['#003F87','#005A8E','#0077B6','#155E38','#1A7A4A','#7B2D12','#C8A
 const AREAS_DEFAULT=["Club de Playa","Centro de Gobierno","Módulo 7","Baños M4","Otros"];
 const LS_CUSTOM_AREAS='isp_custom_areas_v1';
 let customAreas=[];
-try{const ca=localStorage.getItem(LS_CUSTOM_AREAS);if(ca)customAreas=JSON.parse(ca);}catch(e){}
+try{const ca=localStorage.getItem(LS_CUSTOM_AREAS);if(ca){const parsed=JSON.parse(ca);if(Array.isArray(parsed))customAreas=parsed.filter(a=>typeof a==='string'&&a.trim().length>0);}}catch(e){}
 const AREAS=[...AREAS_DEFAULT,...customAreas.filter(a=>!AREAS_DEFAULT.includes(a))];
 function getAllAreas(){return[...AREAS_DEFAULT,...customAreas.filter(a=>!AREAS_DEFAULT.includes(a))];}
 function saveCustomAreas(){try{localStorage.setItem(LS_CUSTOM_AREAS,JSON.stringify(customAreas));}catch(e){}}
@@ -2209,7 +2209,10 @@ async function loadImageFixed(file){
     return new Promise(res=>{const r=new FileReader();r.onload=ev=>res(ev.target.result);r.readAsDataURL(file);});
   }
 }
-function prevPhotos(e){Array.from(e.target.files).forEach(async f=>{const src=await loadImageFixed(f);tempPhotos.push(src);renderPPs();});}
+function prevPhotos(e){
+  const files=Array.from(e.target.files);
+  (async()=>{for(const f of files){const src=await loadImageFixed(f);tempPhotos.push(src);renderPPs();}})();
+}
 function renderPPs(){document.getElementById('photoPrevs').innerHTML=tempPhotos.map((f,i)=>`<div class="photo-prev"><img src="${f}"><button class="photo-prev-del" onclick="rmP(${i})">✕</button></div>`).join('');}
 function rmP(i){tempPhotos.splice(i,1);renderPPs();}
 function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.done=true;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=document.getElementById('cEst').value;a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];syncProj(a);closeComp();renderAssigned();chips();toast(`✓ ${a.nombre} registrado`);}
@@ -3846,10 +3849,12 @@ function loadMemory(){
     const pr = localStorage.getItem(LS_PROJS);
     if(pr){ const loaded=JSON.parse(pr); if(loaded.length) proyectos=loaded; }
 
-    // Discover any custom areas already in saved data
+    // Discover any custom areas already in saved data and persist them
     const allKnown=getAllAreas();
-    const srcAreas=[...personal.map(x=>x.area),...proyectos.map(x=>x.area),...actFrec.map(x=>x.area)];
-    srcAreas.forEach(a=>{if(a&&!allKnown.includes(a)){customAreas.push(a);AREAS.push(a);}});
+    const srcAreas=[...new Set([...personal.map(x=>x.area),...proyectos.map(x=>x.area),...actFrec.map(x=>x.area)])];
+    let newFound=false;
+    srcAreas.forEach(a=>{if(a&&typeof a==='string'&&!getAllAreas().includes(a)){customAreas.push(a);AREAS.push(a);newFound=true;}});
+    if(newFound)saveCustomAreas();
 
     updateMemPill();
   } catch(e){ console.warn('Error loading memory:', e); }
@@ -5100,11 +5105,7 @@ function updatePctBtns(v) {
 
 function prevSegPhotos(e) {
   const files = Array.from(e.target.files);
-  files.forEach(async f => {
-    const src = await loadImageFixed(f);
-    segTempPhotos.push(src);
-    renderSegPrevs();
-  });
+  (async () => { for (const f of files) { const src = await loadImageFixed(f); segTempPhotos.push(src); renderSegPrevs(); } })();
 }
 
 function renderSegPrevs() {
