@@ -1147,27 +1147,20 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 <header>
   <div class="hd-left">
     <div class="hd-logo" title="Instituto Salvadoreño de Pensiones">
-      <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 170" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="ispArc" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#E94560"/>
-            <stop offset="40%" stop-color="#F58634"/>
+          <linearGradient id="arcG1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#F05B6B"/>
+            <stop offset="45%" stop-color="#F5883A"/>
             <stop offset="100%" stop-color="#FBC02D"/>
           </linearGradient>
-          <linearGradient id="ispArc2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#FBC02D"/>
-            <stop offset="60%" stop-color="#F58634"/>
-            <stop offset="100%" stop-color="#E94560"/>
-          </linearGradient>
         </defs>
-        <!-- outer arc -->
-        <path d="M 30 40 Q 100 -10 170 40" stroke="url(#ispArc)" stroke-width="12" stroke-linecap="round" fill="none"/>
-        <!-- inner arc -->
-        <path d="M 50 55 Q 100 15 150 55" stroke="url(#ispArc2)" stroke-width="7" stroke-linecap="round" fill="none" opacity=".7"/>
-        <!-- ISP text -->
-        <text x="100" y="128" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="90" fill="#FFFFFF" letter-spacing="-1">ISP</text>
-        <!-- thin underline in gold -->
-        <line x1="38" y1="140" x2="162" y2="140" stroke="#C8A84B" stroke-width="3" stroke-linecap="round"/>
+        <!-- Single clean arc centered over S (between I and P) -->
+        <path d="M 42 52 Q 100 2 158 52" stroke="url(#arcG1)" stroke-width="14" stroke-linecap="round" fill="none"/>
+        <!-- ISP bold text -->
+        <text x="100" y="138" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="96" fill="#FFFFFF" letter-spacing="1">ISP</text>
+        <!-- gold accent bar -->
+        <rect x="38" y="147" width="124" height="3" rx="1.5" fill="#C8A84B"/>
       </svg>
     </div>
     <div>
@@ -1218,6 +1211,7 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <div class="nt" onclick="showPg('actfreq',this)"><span>⚡</span><span class="nt-label">Rápidas</span></div>
   <div class="nt" onclick="showPg('historial',this)"><span>📅</span><span class="nt-label">Historial <span class="chip" id="chipHist">0</span></span></div>
   <div class="nt" onclick="showPg('seguimiento',this)"><span>📸</span><span class="nt-label">Seguimiento <span class="chip chip-g" id="chipSeg">0</span></span></div>
+  <div class="nt" onclick="showPg('dashboard',this)"><span>📈</span><span class="nt-label">Dashboard</span></div>
 </nav>
 
 <!-- MOBILE FAB: open assign form -->
@@ -1778,6 +1772,44 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   </div>
 </div>
 
+<!-- ══ PAGE: DASHBOARD ══ -->
+<div class="pg" id="pg-dashboard">
+  <div class="rpt-pg">
+    <div class="rpt-head">
+      <div>
+        <div class="rpt-title">📈 Dashboard</div>
+        <div class="rpt-sub">Resumen de actividades por colaborador o especialidad</div>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="exportDashPDF()">📄 Exportar PDF</button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px">Filtrar por</div>
+          <select id="dashFilterType" class="std-select" style="width:100%" onchange="onDashFilterTypeChange()">
+            <option value="colaborador">👤 Colaborador</option>
+            <option value="especialidad">🔧 Especialidad</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px">Seleccionar</div>
+          <select id="dashFilterVal" class="std-select" style="width:100%" onchange="renderDashboard()"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row" id="dashKpiRow"></div>
+
+    <!-- Contenido -->
+    <div id="dashContent"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL: SEGUIMIENTO DETALLE ══ -->
 <div class="modal-bg" id="mSeg">
   <div class="modal mw-lg">
@@ -2061,6 +2093,7 @@ function showPg(n,el){
   if(n==='actfreq')renderActFreq();
   if(n==='historial')renderHistorial();
   if(n==='seguimiento')renderSeguimiento();
+  if(n==='dashboard'){onDashFilterTypeChange();renderDashboard();}
   chips();
   updateFAB(n);
 }
@@ -5876,26 +5909,35 @@ const ISPC = {
 // ── Cabecera ISP para jsPDF ──
 function ispHdr(doc, titulo, subtitulo) {
   const W = doc.internal.pageSize.getWidth();
-  // Fondo azul oscuro
-  doc.setFillColor(...ISPC.dk);  doc.rect(0,0,W,24,'F');
-  // Línea dorada
-  doc.setFillColor(...ISPC.gold); doc.rect(0,24,W,1.8,'F');
-  // ISP texto logo
-  doc.setTextColor(...ISPC.white); doc.setFont('helvetica','bold'); doc.setFontSize(20);
-  doc.text('ISP',14,16);
-  // Arco decorativo (simulado con línea)
-  doc.setDrawColor(...ISPC.gold); doc.setLineWidth(1.2);
-  doc.line(12,6,32,6);
+  // Fondo degradado azul oscuro
+  doc.setFillColor(...ISPC.dk); doc.rect(0,0,W,28,'F');
+  // Barra dorada inferior
+  doc.setFillColor(...ISPC.gold); doc.rect(0,28,W,2,'F');
+  // ── Logo ISP (texto + arco simulado) ──
+  // Arco coral→dorado sobre las letras ISP (3 líneas curvas aproximadas)
+  const arcColors=[[240,91,107],[245,136,58],[251,192,45]];
+  for(let i=0;i<3;i++){
+    doc.setDrawColor(...arcColors[i]);
+    doc.setLineWidth(1.1-i*0.2);
+    doc.line(12+i*1.5, 10-i*1.5, 20+i*1.5, 5-i*1.5);
+    doc.line(20+i*1.5, 5-i*1.5, 28-i*1.5, 10-i*1.5);
+  }
+  // "ISP" en blanco bold grande
+  doc.setTextColor(...ISPC.white); doc.setFont('helvetica','bold'); doc.setFontSize(22);
+  doc.text('ISP',14,22);
+  // Separador vertical dorado
+  doc.setDrawColor(...ISPC.gold); doc.setLineWidth(.5);
+  doc.line(46,5,46,25);
   // Institución
-  doc.setFontSize(8); doc.setFont('helvetica','normal');
-  doc.text('Instituto Salvadoreño de Pensiones',36,10);
-  doc.setTextColor(...ISPC.gold); doc.setFontSize(7);
-  doc.text('Unidad de Mantenimiento · Infraestructura',36,16);
+  doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+  doc.text('Instituto Salvadoreño de Pensiones',50,12);
+  doc.setTextColor(...ISPC.gold); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+  doc.text('Unidad de Mantenimiento · Infraestructura',50,19);
   // Título derecha
-  doc.setTextColor(...ISPC.white); doc.setFont('helvetica','bold'); doc.setFontSize(10);
-  doc.text(titulo, W-14, 10, {align:'right'});
+  doc.setTextColor(...ISPC.white); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text(titulo, W-14, 12, {align:'right'});
   doc.setFont('helvetica','normal'); doc.setFontSize(8);
-  if(subtitulo) doc.text(subtitulo, W-14, 17, {align:'right'});
+  if(subtitulo) doc.text(subtitulo, W-14, 20, {align:'right'});
 }
 
 // ── Pie de página ISP ──
@@ -5925,6 +5967,85 @@ function ispKPIs(doc, y, kpis) {
   return y+22;
 }
 
+// ══ AGRUPAR colaboradores con la misma actividad+área ══
+function buildPDFGroups(asigData) {
+  const seen = new Set();
+  const groups = [];
+  asigData.forEach(a => {
+    if (seen.has(a.id)) return;
+    const actKey = (a.actividad || '').trim().toLowerCase();
+    const mates = asigData.filter(b =>
+      !seen.has(b.id) && b.id !== a.id &&
+      b.area === a.area &&
+      (b.actividad || '').trim().toLowerCase() === actKey
+    );
+    if (mates.length) {
+      const members = [a, ...mates];
+      members.forEach(m => seen.add(m.id));
+      groups.push({
+        _isGroup: true,
+        area: a.area,
+        actividad: a.actividad,
+        hora: a.hora,
+        nombres: members.map(m => m.nombre),
+        done: members.every(m => m.done),
+        fotos: members.flatMap(m => m.fotos || []),
+        observaciones: [...new Set(members.map(m => m.observaciones).filter(Boolean))].join(' · '),
+        horaFin: members.find(m => m.horaFin)?.horaFin || ''
+      });
+    } else {
+      seen.add(a.id);
+      groups.push({ ...a, _isGroup: false, nombres: [a.nombre] });
+    }
+  });
+  return groups;
+}
+
+// ══ INSERTAR FOTOS EN PDF (tamaño grande, todas las fotos) ══
+function pdfFotos(doc, fotos, y, W, H, titulo) {
+  function chy(n) { if (y + n > H - 14) { doc.addPage(); y = 34; } return y; }
+  if (!fotos || !fotos.length) return y;
+
+  // Etiqueta
+  chy(10);
+  doc.setFillColor(...ISPC.bg); doc.setDrawColor(...ISPC.brd); doc.setLineWidth(.3);
+  doc.roundedRect(14, y, W - 28, 7, 1.5, 1.5, 'FD');
+  doc.setTextColor(...ISPC.t2); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text(titulo || 'Evidencia fotográfica', 18, y + 4.8);
+  doc.setTextColor(...ISPC.t3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text(`${fotos.length} foto${fotos.length > 1 ? 's' : ''}`, W - 14, y + 4.8, { align: 'right' });
+  y += 10;
+
+  const perRow = fotos.length === 1 ? 1 : 2;
+  const fw = perRow === 1 ? W - 28 : (W - 28 - 5) / 2;
+  const fh = perRow === 1 ? Math.min(fw * 0.65, 110) : Math.min(fw * 0.75, 80);
+
+  for (let r = 0; r < Math.ceil(fotos.length / perRow); r++) {
+    chy(fh + 6);
+    for (let c = 0; c < perRow; c++) {
+      const fi = r * perRow + c;
+      if (fi >= fotos.length) break;
+      const x = 14 + c * (fw + 5);
+      try {
+        doc.addImage(fotos[fi], 'JPEG', x, y, fw, fh, undefined, 'MEDIUM');
+        doc.setDrawColor(...ISPC.brd); doc.setLineWidth(.4);
+        doc.rect(x, y, fw, fh);
+        // Número de foto
+        doc.setFillColor(0,0,0); doc.setTextColor(255,255,255);
+        doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        doc.roundedRect(x+1, y+1, 10, 5, 1, 1, 'F');
+        doc.text(`Foto ${fi+1}`, x+6, y+4.5, { align:'center' });
+      } catch {
+        doc.setFillColor(...ISPC.bg); doc.rect(x, y, fw, fh, 'F');
+        doc.setTextColor(...ISPC.t3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+        doc.text('Imagen no disponible', x + fw/2, y + fh/2, { align:'center' });
+      }
+    }
+    y += fh + 4;
+  }
+  return y + 4;
+}
+
 // ══ GENERAR PDF ══
 function generarPDF(tipo, proyId) {
   const {jsPDF} = window.jspdf;
@@ -5935,7 +6056,6 @@ function generarPDF(tipo, proyId) {
   let y=0, titulo='', subtitulo='', filename='';
   const date=document.getElementById('globalDate').value;
 
-  // Datos según tipo
   let asigData=[], noDispData=[], diasData=[], notaStr='';
 
   if(tipo==='diario'){
@@ -5969,122 +6089,152 @@ function generarPDF(tipo, proyId) {
   const pend=asigData.length-done;
   const pct=asigData.length?Math.round(done/asigData.length*100):0;
 
-  function newPage(){ doc.addPage(); ispHdr(doc,titulo,subtitulo); y=30; }
+  function newPage(){ doc.addPage(); ispHdr(doc,titulo,subtitulo); y=34; }
   function chy(n){ if(y+n>H-14) newPage(); }
 
   // ─ Primera página ─
   ispHdr(doc,titulo,subtitulo);
-  y=30;
+  y=34;
 
-  // Fecha/período
-  ff('italic',8.5); st(ISPC.t3);
-  doc.text(subtitulo,14,y); y+=7;
-
-  // Nota
+  // Nota del día
   if(notaStr){
-    chy(12); sf(ISPC.bg); doc.setDrawColor(...ISPC.gold); doc.setLineWidth(.4);
-    doc.roundedRect(14,y,W-28,9,1.5,1.5,'FD');
-    st(ISPC.t2); ff('bold',7.5); doc.text('Nota del día:',18,y+5.5);
-    ff('normal',7.5); doc.text(notaStr.slice(0,120),42,y+5.5,{maxWidth:W-58});
-    y+=13;
+    chy(13); sf(ISPC.bg); doc.setDrawColor(...ISPC.gold); doc.setLineWidth(.5);
+    doc.roundedRect(14,y,W-28,10,2,2,'FD');
+    sf(ISPC.gold); doc.roundedRect(14,y,3.5,10,2,0,'F');
+    st(ISPC.t1); ff('bold',8); doc.text('Nota del día:',21,y+6.5);
+    ff('normal',8); doc.text(notaStr.slice(0,130),52,y+6.5,{maxWidth:W-68});
+    y+=14;
   }
 
   // KPIs
   chy(26);
   y=ispKPIs(doc,y,[
-    {l:'Total Personal',v:personal.length,c:ISPC.azul},
+    {l:'Personal total',v:personal.length,c:ISPC.azul},
     {l:'Asignados',v:asigData.length,c:[0,119,182]},
     {l:'Cumplidas',v:done,c:ISPC.mint},
     {l:'Pendientes',v:pend,c:ISPC.coral},
     {l:'% Avance',v:pct+'%',c:ISPC.gold}
   ]);
 
-  // Barra de progreso
-  chy(12); sf(ISPC.bg); doc.roundedRect(14,y,W-28,4.5,2,2,'F');
-  if(pct>0){sf(ISPC.mint); doc.roundedRect(14,y,(W-28)*pct/100,4.5,2,2,'F');}
-  st(ISPC.mint); ff('bold',7); doc.text(pct+'% completado',W-14,y+10,{align:'right'});
-  y+=16;
+  // Barra de progreso global
+  chy(14);
+  sf(ISPC.bg); doc.roundedRect(14,y,W-28,5,2.5,2.5,'F');
+  if(pct>0){sf(ISPC.mint); doc.roundedRect(14,y,(W-28)*pct/100,5,2.5,2.5,'F');}
+  st(ISPC.mint); ff('bold',7.5); doc.text(pct+'% completado',W-14,y+11,{align:'right'});
+  y+=18;
 
-  // Para periodos: resumen por día
-  if(tipo==='semanal'||tipo==='mensual'){
-    chy(20); sf(ISPC.azul); doc.roundedRect(14,y,W-28,8,1.5,1.5,'F');
-    st(ISPC.white); ff('bold',9); doc.text('RESUMEN POR DÍA',18,y+5.5);
-    y+=11;
+  // Resumen por día (semanal/mensual)
+  if((tipo==='semanal'||tipo==='mensual') && diasData.length){
+    chy(20); sf(ISPC.azul); doc.roundedRect(14,y,W-28,9,2,2,'F');
+    st(ISPC.white); ff('bold',9.5); doc.text('RESUMEN POR DÍA',18,y+6.2);
+    y+=12;
     diasData.forEach(d=>{
-      chy(11);
+      chy(12);
       const dc=d.asignaciones.filter(a=>a.done).length;
       const dp=Math.round(d.asignaciones.length?dc/d.asignaciones.length*100:0);
-      sf(ISPC.bg); doc.setDrawColor(...ISPC.brd); doc.setLineWidth(.3);
-      doc.roundedRect(14,y,W-28,8,1.5,1.5,'FD');
-      st(ISPC.t2); ff('bold',8); doc.text(fmt(d.fecha),18,y+5.5);
-      ff('normal',7.5); doc.text(`${d.asignaciones.length} asig. · ${dc} cumplidas · ${dp}%`,W-14,y+5.5,{align:'right'});
-      y+=10;
+      sf(dp>=80?[237,253,243]:dp>=50?[255,251,235]:[255,242,242]);
+      doc.setDrawColor(...ISPC.brd); doc.setLineWidth(.3);
+      doc.roundedRect(14,y,W-28,9,1.5,1.5,'FD');
+      st(ISPC.t1); ff('bold',8.5); doc.text(fmt(d.fecha),18,y+6);
+      ff('normal',8); st(ISPC.t2);
+      doc.text(`${d.asignaciones.length} asig. · ${dc} cumplidas`,80,y+6);
+      st(dp>=80?ISPC.mint:dp>=50?ISPC.gold:ISPC.coral); ff('bold',8.5);
+      doc.text(dp+'%',W-14,y+6,{align:'right'});
+      y+=11;
     });
-    y+=4;
+    y+=5;
   }
 
-  // No disponibles (al final del periodo)
+  // No disponibles
   if(noDispData.length){
-    chy(14); sf([240,240,240]); doc.setDrawColor(...ISPC.brd); doc.setLineWidth(.3);
-    doc.roundedRect(14,y,W-28,8,1.5,1.5,'FD');
-    st(ISPC.t2); ff('bold',7.5); doc.text('No disponibles:',18,y+5.5);
-    st(ISPC.t3); ff('normal',7.5);
+    chy(14); sf([255,242,242]); doc.setDrawColor(...ISPC.coral); doc.setLineWidth(.4);
+    doc.roundedRect(14,y,W-28,9,2,2,'FD');
+    sf(ISPC.coral); doc.roundedRect(14,y,3.5,9,2,0,'F');
+    st(ISPC.coral); ff('bold',7.5); doc.text('No disponibles:',21,y+6);
+    st(ISPC.t2); ff('normal',7.5);
     const ndtxt=noDispData.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · ');
-    doc.text(ndtxt,W-14,y+5.5,{align:'right',maxWidth:W*0.6});
-    y+=12;
+    doc.text(ndtxt,W-14,y+6,{align:'right',maxWidth:W*0.58});
+    y+=13;
   }
 
-  // ─ Actividades por área ─
+  // ─ Actividades por área (agrupando colaboradores con misma tarea) ─
   const grp={}; asigData.forEach(a=>{if(!grp[a.area])grp[a.area]=[];grp[a.area].push(a);});
   const areas=[...AREAS,...Object.keys(grp).filter(k=>!AREAS.includes(k))];
 
   for(const area of areas){
     const rows=grp[area]; if(!rows?.length) continue;
     const ac=ISPC.aCol[area]||ISPC.t2;
+    const groups=buildPDFGroups(rows);
     const ad=rows.filter(r=>r.done).length, ap=Math.round(ad/rows.length*100);
-    chy(28);
-    sf(ac); doc.roundedRect(14,y,W-28,10,1.5,1.5,'F');
-    st(ISPC.white); ff('bold',9); doc.text(area.toUpperCase(),18,y+7);
-    ff('normal',7.5); doc.text(`${ad}/${rows.length} cumplidas — ${ap}%`,W-15,y+7,{align:'right'});
-    y+=12;
-    // Barra área
-    sf(ISPC.bg); doc.roundedRect(14,y,W-28,3,1.5,1.5,'F');
-    if(ap>0){sf(ISPC.mint); doc.roundedRect(14,y,(W-28)*ap/100,3,1.5,1.5,'F');}
-    y+=7;
 
-    for(const a of rows){
-      const isDone=a.done;
-      chy(isDone&&a.observaciones?22:16);
+    // Cabecera de área
+    chy(32);
+    sf(ac); doc.roundedRect(14,y,W-28,11,2,2,'F');
+    st(ISPC.white); ff('bold',10); doc.text('  '+area.toUpperCase(),14,y+7.8);
+    // Badge progreso área
+    const badgeW=42;
+    sf(ap>=80?[0,100,60]:ap>=50?[140,100,0]:[180,20,20]);
+    doc.roundedRect(W-14-badgeW,y+2,badgeW,7,3.5,3.5,'F');
+    st(ISPC.white); ff('bold',7.5);
+    doc.text(`${ad}/${rows.length} · ${ap}%`,W-14-badgeW/2,y+7,{align:'center'});
+    y+=13;
+
+    // Barra de progreso del área
+    sf(ISPC.bg); doc.roundedRect(14,y,W-28,3.5,1.8,1.8,'F');
+    if(ap>0){sf(ap>=80?ISPC.mint:ap>=50?ISPC.gold:ISPC.coral); doc.roundedRect(14,y,(W-28)*ap/100,3.5,1.8,1.8,'F');}
+    y+=8;
+
+    for(const g of groups){
+      const isDone=g.done;
+      const hasObs=!!(g.observaciones);
+      const isGroup=g._isGroup && g.nombres.length>1;
+      // Altura base de fila: más si hay obs o es grupo
+      const rowH=10+(hasObs?6:0)+(isGroup?5:0);
+      chy(rowH+2);
+
       // Fondo fila
-      sf(isDone?[237,253,243]:[255,255,255]);
-      doc.setDrawColor(...(isDone?ISPC.mint:ISPC.brd)); doc.setLineWidth(.3);
-      doc.roundedRect(14,y,W-28,isDone&&a.observaciones?18:13,1.5,1.5,'FD');
-      sf(isDone?ISPC.mint:ISPC.brd); doc.roundedRect(14,y,3,isDone&&a.observaciones?18:13,1.5,0,'F');
-      // Nombre + actividad
-      st(ISPC.t1); ff('bold',9); doc.text(a.nombre,20,y+5.5);
-      st(ISPC.t2); ff('normal',8); doc.text((a.actividad||'').slice(0,70),20,y+(isDone&&a.observaciones?10:9));
-      if(isDone&&a.observaciones){ st(ISPC.mint); ff('italic',7.5); doc.text('📝 '+(a.observaciones||'').slice(0,80),20,y+14.5); }
+      sf(isDone?[236,253,245]:[250,252,255]);
+      doc.setDrawColor(...(isDone?ISPC.mint:ISPC.brd)); doc.setLineWidth(.35);
+      doc.roundedRect(14,y,W-28,rowH,2,2,'FD');
+      // Barra lateral de estado
+      sf(isDone?ISPC.mint:ISPC.brd); doc.roundedRect(14,y,3.5,rowH,2,0,'F');
+
+      // Nombre(s) colaborador(es)
+      const nombreTxt = isGroup ? g.nombres.join(' · ') : g.nombres[0];
+      st(ISPC.t1); ff('bold',8.5);
+      doc.text(nombreTxt.slice(0,72), 21, y+6.5);
+      if(isGroup){
+        // Badge "Equipo X personas"
+        sf([0,63,135]); doc.roundedRect(W-50,y+1.5,34,6,3,3,'F');
+        st(ISPC.white); ff('bold',6.5); doc.text(`Equipo ${g.nombres.length} pers.`,W-33,y+5.5,{align:'center'});
+      }
+
+      // Actividad
+      st(ISPC.t2); ff('normal',8);
+      doc.text((g.actividad||'').slice(0,76), 21, y+(isGroup?12.5:11));
+
+      // Observaciones
+      if(hasObs){
+        st(ISPC.mint); ff('italic',7.5);
+        doc.text('Obs: '+(g.observaciones||'').slice(0,80), 21, y+rowH-3);
+      }
+
       // Badge estado
       const bx=W-42;
-      if(isDone){sf(ISPC.mint);doc.roundedRect(bx,y+2,25,7,2,2,'F');st(ISPC.white);ff('bold',7);doc.text('Cumplida',bx+12.5,y+6.5,{align:'center'});}
-      else{sf([255,235,235]);doc.setDrawColor(...ISPC.coral);doc.setLineWidth(.3);doc.roundedRect(bx,y+2,25,7,2,2,'FD');st(ISPC.coral);ff('bold',7);doc.text('Pendiente',bx+12.5,y+6.5,{align:'center'});}
-      if(a.hora){ st(ISPC.t3); ff('normal',6.5); doc.text('⏰ '+(a.hora||''),bx,y+12,{align:'center'}); }
-      y+=isDone&&a.observaciones?21:16;
+      if(!isGroup){
+        if(isDone){sf(ISPC.mint);doc.roundedRect(bx,y+2,26,7,3.5,3.5,'F');st(ISPC.white);ff('bold',7);doc.text('✓ Cumplida',bx+13,y+6.5,{align:'center'});}
+        else{sf([255,232,232]);doc.setDrawColor(...ISPC.coral);doc.setLineWidth(.3);doc.roundedRect(bx,y+2,26,7,3.5,3.5,'FD');st(ISPC.coral);ff('bold',7);doc.text('Pendiente',bx+13,y+6.5,{align:'center'});}
+        if(g.hora||g.horaFin){st(ISPC.t3);ff('normal',6.5);doc.text((g.hora||'')+(g.horaFin?' → '+g.horaFin:''),bx+13,y+rowH-2,{align:'center'});}
+      }
 
-      // Fotos de evidencia
-      if(isDone&&a.fotos&&a.fotos.length){
-        const maxF=Math.min(a.fotos.length,3);
-        const fw=(W-28-(maxF-1)*4)/maxF, fh=Math.min(fw*.7,44);
-        chy(fh+8);
-        st(ISPC.t3); ff('normal',7); doc.text('Evidencia:',14,y); y+=5;
-        for(let fi=0;fi<maxF;fi++){
-          try{doc.addImage(a.fotos[fi],'JPEG',14+fi*(fw+4),y,fw,fh,undefined,'FAST');}
-          catch{sf(ISPC.bg);doc.rect(14+fi*(fw+4),y,fw,fh,'F');}
-        }
-        y+=fh+8;
+      y+=rowH+3;
+
+      // ── FOTOS grandes ──
+      if(g.fotos && g.fotos.length){
+        y=pdfFotos(doc,g.fotos,y,W,H,isGroup?`Evidencia del equipo (${g.nombres.length} colaboradores)`:'Evidencia fotográfica');
       }
     }
-    y+=5;
+    y+=6;
   }
 
   // Pies de página
@@ -6232,6 +6382,254 @@ function generarWord(tipo, proyId) {
 
   const blob=new Blob(['\ufeff'+html],{type:'application/msword;charset=utf-8'});
   smartDownload(blob, filename);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD — Resumen por colaborador o especialidad
+══════════════════════════════════════════════════════════════ */
+
+function onDashFilterTypeChange() {
+  const type = document.getElementById('dashFilterType')?.value || 'colaborador';
+  const sel  = document.getElementById('dashFilterVal');
+  if (!sel) return;
+  if (type === 'colaborador') {
+    sel.innerHTML = personal.length
+      ? personal.map(p => `<option value="${p.id}">${p.nombre} · ${p.area}</option>`).join('')
+      : '<option value="">Sin personal registrado</option>';
+  } else {
+    const specs = [...new Set(personal.flatMap(p => p.specs || []))].sort();
+    sel.innerHTML = specs.length
+      ? specs.map(s => `<option value="${s}">${s}</option>`).join('')
+      : '<option value="">Sin especialidades registradas</option>';
+  }
+}
+
+function renderDashboard() {
+  const type = document.getElementById('dashFilterType')?.value || 'colaborador';
+  const val  = document.getElementById('dashFilterVal')?.value;
+  if (!val) {
+    document.getElementById('dashKpiRow').innerHTML = '';
+    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="empty-icon">📈</div><p>Selecciona un colaborador o especialidad</p></div>`;
+    return;
+  }
+
+  // Armar días: día actual + historial
+  const todayFecha = document.getElementById('globalDate').value;
+  const allDays = [
+    { fecha: todayFecha, asignaciones: asigs },
+    ...historial
+  ];
+
+  // Filtrar actividades
+  let allActs = [];
+  let filterLabel = '';
+  if (type === 'colaborador') {
+    const pid = parseInt(val);
+    const p = personal.find(x => x.id === pid);
+    filterLabel = p ? p.nombre : 'Colaborador';
+    allActs = allDays.flatMap(d =>
+      d.asignaciones
+        .filter(a => a.pid === pid)
+        .map(a => ({ ...a, _fecha: d.fecha }))
+    );
+  } else {
+    filterLabel = val;
+    const specPids = new Set(personal.filter(p => (p.specs||[]).includes(val)).map(p => p.id));
+    allActs = allDays.flatMap(d =>
+      d.asignaciones
+        .filter(a => specPids.has(a.pid))
+        .map(a => ({ ...a, _fecha: d.fecha }))
+    );
+  }
+
+  // Dedup (mismo id puede aparecer en historial + dia actual si se cerró hoy)
+  const seenIds = new Set();
+  allActs = allActs.filter(a => { if(seenIds.has(a.id)) return false; seenIds.add(a.id); return true; });
+
+  const done  = allActs.filter(a => a.done).length;
+  const pend  = allActs.length - done;
+  const pct   = allActs.length ? Math.round(done / allActs.length * 100) : 0;
+
+  // KPIs
+  document.getElementById('dashKpiRow').innerHTML = `
+    <div class="kpi k2"><div class="kpi-icon">📋</div><div class="kpi-val">${allActs.length}</div><div class="kpi-lbl">Total asignadas</div><div class="kpi-bar"><div class="kpi-fill" style="width:100%"></div></div></div>
+    <div class="kpi k3"><div class="kpi-icon">✅</div><div class="kpi-val">${done}</div><div class="kpi-lbl">Cumplidas</div><div class="kpi-bar"><div class="kpi-fill" style="width:${pct}%"></div></div></div>
+    <div class="kpi k4"><div class="kpi-icon">⏳</div><div class="kpi-val">${pend}</div><div class="kpi-lbl">Pendientes</div><div class="kpi-bar"><div class="kpi-fill" style="width:${allActs.length?Math.round(pend/allActs.length*100):0}%"></div></div></div>
+    <div class="kpi k1"><div class="kpi-icon">🏆</div><div class="kpi-val">${pct}%</div><div class="kpi-lbl">Completado</div><div class="kpi-bar"><div class="kpi-fill" style="width:${pct}%"></div></div></div>`;
+
+  let h = '';
+
+  if (!allActs.length) {
+    h = `<div class="empty"><div class="empty-icon">📊</div><p>No hay actividades registradas para <strong>${filterLabel}</strong>.</p></div>`;
+    document.getElementById('dashContent').innerHTML = h;
+    return;
+  }
+
+  // Barra de progreso
+  h += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:var(--t3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Progreso general — ${filterLabel}</div>
+    <div class="prog-wrap">
+      <div class="prog-bg"><div class="prog-fg" style="width:${pct}%"></div></div>
+      <div class="prog-lbls"><span>${done} de ${allActs.length} actividades cumplidas</span><span style="color:var(--mint);font-weight:700">${pct}%</span>
+    </div></div>
+  </div>`;
+
+  // Agrupar por área
+  const byArea = {};
+  allActs.forEach(a => { if(!byArea[a.area]) byArea[a.area]=[]; byArea[a.area].push(a); });
+
+  // Resumen por área
+  const areaKeys = [...AREAS, ...Object.keys(byArea).filter(k=>!AREAS.includes(k))].filter(k=>byArea[k]);
+  if (areaKeys.length > 1) {
+    h += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Resumen por área</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">`;
+    areaKeys.forEach(area => {
+      const rows = byArea[area];
+      const ad = rows.filter(r=>r.done).length;
+      const ap = rows.length ? Math.round(ad/rows.length*100) : 0;
+      const col = ACOL[area] || '#4A5568';
+      h += `<div style="background:${col}12;border:1px solid ${col}30;border-radius:var(--r-sm);padding:10px">
+        <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:4px">${area}</div>
+        <div style="font-size:18px;font-weight:800;color:${col}">${ap}%</div>
+        <div style="font-size:10px;color:var(--t3)">${ad}/${rows.length} cumplidas</div>
+      </div>`;
+    });
+    h += `</div></div>`;
+  }
+
+  // Actividades agrupadas por fecha (más reciente primero)
+  const byDate = {};
+  allActs.forEach(a => { if(!byDate[a._fecha]) byDate[a._fecha]=[]; byDate[a._fecha].push(a); });
+  const fechas = Object.keys(byDate).sort().reverse();
+
+  fechas.forEach(fecha => {
+    const rows = byDate[fecha];
+    const fd = rows.filter(r => r.done).length;
+    const fp = rows.length ? Math.round(fd/rows.length*100) : 0;
+    const isToday = fecha === todayFecha;
+    h += `<div class="rpt-area">
+      <div class="ra-head ${isToday?'ah-gobierno':'ah-otros'}">
+        <h3>${isToday?'📅 Hoy — ':' 📅 '}${fmt(fecha)}</h3>
+        <span style="background:rgba(255,255,255,.2);color:#fff;font-size:10px;padding:2px 10px;border-radius:20px">${fd}/${rows.length} · ${fp}%</span>
+      </div>`;
+
+    rows.forEach(a => {
+      const photos = (a.fotos||[]).length
+        ? `<div class="ri-photos">${(a.fotos||[]).map(f=>`<img class="ri-photo" src="${f}" onclick="openLB('${f}')" style="max-height:100px;max-width:140px;border-radius:6px;cursor:zoom-in">`).join('')}</div>`
+        : '';
+      h += `<div class="ri-row">
+        <div class="ri-l">
+          <div class="ri-av">${ini(a.nombre)}</div>
+          <div style="flex:1">
+            <div class="ri-name">${a.nombre}</div>
+            <div class="ri-act">${a.actividad}</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px">📍 ${a.area}${a.hora?' · ⏰ '+a.hora:''}</div>
+            ${a.observaciones?`<div class="ri-obs">📝 ${a.observaciones}</div>`:''}
+            ${photos}
+          </div>
+        </div>
+        <div class="ri-r">
+          <span class="${a.done?'badge bd':'badge bp'}">${a.done?'✓ Cumplida':'⏳ Pendiente'}</span>
+          ${a.horaFin?`<span style="font-size:10px;color:var(--t3)">🕐 ${a.horaFin}</span>`:''}
+        </div>
+      </div>`;
+    });
+    h += `</div>`;
+  });
+
+  document.getElementById('dashContent').innerHTML = h;
+}
+
+// ── Exportar Dashboard como PDF ──
+function exportDashPDF() {
+  const type = document.getElementById('dashFilterType')?.value || 'colaborador';
+  const val  = document.getElementById('dashFilterVal')?.value;
+  if (!val) { toast('Selecciona un filtro primero','warn'); return; }
+
+  const todayFecha = document.getElementById('globalDate').value;
+  const allDays = [{ fecha: todayFecha, asignaciones: asigs }, ...historial];
+  let allActs = [], filterLabel = '';
+
+  if (type === 'colaborador') {
+    const pid = parseInt(val);
+    const p = personal.find(x => x.id === pid);
+    filterLabel = p ? p.nombre : 'Colaborador';
+    allActs = allDays.flatMap(d => d.asignaciones.filter(a=>a.pid===pid).map(a=>({...a,_fecha:d.fecha})));
+  } else {
+    filterLabel = val;
+    const specPids = new Set(personal.filter(p=>(p.specs||[]).includes(val)).map(p=>p.id));
+    allActs = allDays.flatMap(d => d.asignaciones.filter(a=>specPids.has(a.pid)).map(a=>({...a,_fecha:d.fecha})));
+  }
+  const seenIds=new Set();
+  allActs=allActs.filter(a=>{if(seenIds.has(a.id))return false;seenIds.add(a.id);return true;});
+
+  if(!allActs.length){toast('No hay actividades para exportar','warn');return;}
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+  const ff=(w,s)=>{doc.setFont('helvetica',w);doc.setFontSize(s);};
+  const sf=c=>doc.setFillColor(...c), st=c=>doc.setTextColor(...c);
+
+  const titulo = type==='colaborador'?'Resumen Colaborador':'Resumen Especialidad';
+  ispHdr(doc, titulo, filterLabel);
+  let y=34;
+
+  const done=allActs.filter(a=>a.done).length, pend=allActs.length-done;
+  const pct=allActs.length?Math.round(done/allActs.length*100):0;
+  function chy(n){if(y+n>H-14){doc.addPage();ispHdr(doc,titulo,filterLabel);y=34;}}
+
+  y=ispKPIs(doc,y,[
+    {l:'Total actividades',v:allActs.length,c:ISPC.azul},
+    {l:'Cumplidas',v:done,c:ISPC.mint},
+    {l:'Pendientes',v:pend,c:ISPC.coral},
+    {l:'% Completado',v:pct+'%',c:ISPC.gold}
+  ]);
+
+  sf(ISPC.bg); doc.roundedRect(14,y,W-28,5,2.5,2.5,'F');
+  if(pct>0){sf(ISPC.mint); doc.roundedRect(14,y,(W-28)*pct/100,5,2.5,2.5,'F');}
+  y+=12;
+
+  // Por fecha
+  const byDate={};
+  allActs.forEach(a=>{if(!byDate[a._fecha])byDate[a._fecha]=[];byDate[a._fecha].push(a);});
+  Object.keys(byDate).sort().reverse().forEach(fecha=>{
+    const rows=byDate[fecha];
+    const fd=rows.filter(r=>r.done).length;
+    chy(20);
+    sf(ISPC.azulM); doc.roundedRect(14,y,W-28,9,2,2,'F');
+    st(ISPC.white); ff('bold',9); doc.text('📅 '+fmt(fecha),18,y+6.2);
+    ff('normal',8); doc.text(`${fd}/${rows.length} cumplidas`,W-14,y+6.2,{align:'right'});
+    y+=12;
+    rows.forEach(a=>{
+      const isDone=a.done, hasObs=!!(a.observaciones);
+      const rowH=9+(hasObs?5:0);
+      chy(rowH+2);
+      sf(isDone?[236,253,245]:[250,252,255]);
+      doc.setDrawColor(...(isDone?ISPC.mint:ISPC.brd)); doc.setLineWidth(.3);
+      doc.roundedRect(14,y,W-28,rowH,1.5,1.5,'FD');
+      sf(isDone?ISPC.mint:ISPC.brd); doc.roundedRect(14,y,3,rowH,1.5,0,'F');
+      st(ISPC.t1); ff('bold',8.5); doc.text(a.nombre,20,y+5.5);
+      st(ISPC.t2); ff('normal',8); doc.text((a.actividad||'').slice(0,70),20,y+(hasObs?9.5:8.5));
+      if(hasObs){st(ISPC.mint);ff('italic',7);doc.text('Obs: '+(a.observaciones||'').slice(0,80),20,y+rowH-2);}
+      // Área
+      st(ISPC.t3); ff('normal',7); doc.text('📍 '+a.area,W-14,y+5.5,{align:'right'});
+      // Estado badge
+      const bx=W-44;
+      if(isDone){sf(ISPC.mint);doc.roundedRect(bx,y+rowH-8,28,6,3,3,'F');st(ISPC.white);ff('bold',7);doc.text('✓ Cumplida',bx+14,y+rowH-3.8,{align:'center'});}
+      else{sf([255,232,232]);doc.setDrawColor(...ISPC.coral);doc.setLineWidth(.3);doc.roundedRect(bx,y+rowH-8,28,6,3,3,'FD');st(ISPC.coral);ff('bold',7);doc.text('Pendiente',bx+14,y+rowH-3.8,{align:'center'});}
+      y+=rowH+3;
+      // Fotos
+      if(a.fotos&&a.fotos.length){y=pdfFotos(doc,a.fotos,y,W,H,'Evidencia');}
+    });
+    y+=5;
+  });
+
+  const tp=doc.internal.getNumberOfPages();
+  for(let i=1;i<=tp;i++){doc.setPage(i);ispFtr(doc,i,tp);}
+  const blob=new Blob([doc.output('arraybuffer')],{type:'application/pdf'});
+  smartDownload(blob,`ISP_Dashboard_${filterLabel.replace(/\s+/g,'_')}_${todayFecha}.pdf`);
 }
 
 /* ══════════════════════════════════════════════════════════════
