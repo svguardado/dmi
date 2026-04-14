@@ -1212,7 +1212,6 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <div class="nt" onclick="showPg('personal',this)"><span>👥</span><span class="nt-label">Personal</span></div>
   <div class="nt" onclick="showPg('actfreq',this)"><span>⚡</span><span class="nt-label">Rápidas</span></div>
   <div class="nt" onclick="showPg('historial',this)"><span>📅</span><span class="nt-label">Historial <span class="chip" id="chipHist">0</span></span></div>
-  <div class="nt" onclick="showPg('seguimiento',this)"><span>📸</span><span class="nt-label">Seguimiento <span class="chip chip-g" id="chipSeg">0</span></span></div>
   <div class="nt" onclick="showPg('dashboard',this)"><span>📈</span><span class="nt-label">Dashboard</span></div>
 </nav>
 
@@ -1486,6 +1485,16 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="fg-grid">
       <div class="fg"><label>Hora finalización</label><input type="text" id="cHora"></div>
       <div class="fg"><label>Estado final</label><select id="cEst"><option value="completada">✅ Completada al 100%</option><option value="parcial">⚠️ Parcialmente</option><option value="no_completada">❌ No completada</option></select></div>
+      <div class="fg full">
+        <label>% Avance</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="compPctBtns">
+          <button type="button" class="pct-btn" onclick="setCompPct(0,this)">0%</button>
+          <button type="button" class="pct-btn" onclick="setCompPct(25,this)">25%</button>
+          <button type="button" class="pct-btn" onclick="setCompPct(50,this)">50%</button>
+          <button type="button" class="pct-btn" onclick="setCompPct(75,this)">75%</button>
+          <button type="button" class="pct-btn on" onclick="setCompPct(100,this)">100%</button>
+        </div>
+      </div>
       <div class="fg full"><label>Observaciones</label><textarea id="cObs" placeholder="Trabajo realizado, materiales, incidencias, pendientes…" style="min-height:70px"></textarea></div>
     </div>
     <div class="fg full">
@@ -1742,48 +1751,6 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   </div>
 </div>
 
-<!-- ══ PAGE: SEGUIMIENTO ══ -->
-<div class="pg" id="pg-seguimiento">
-  <div class="seg-pg">
-    <div class="seg-tb">
-      <div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);font-weight:700">Seguimiento Diario</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">Registra avances, fotos de evidencia y genera reporte para el día</div>
-      </div>
-      <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-ghost btn-sm" id="btnSegMultiMode" onclick="toggleSegMultiMode()" title="Seleccionar varios colaboradores con la misma tarea">👥 Modo equipo</button>
-        <button class="btn btn-mint btn-sm" id="btnSegRegistrarGrupo" style="display:none" onclick="abrirSegGrupo()">📸 Registrar grupo</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportarWordSeguimiento()">📝 Word</button>
-        <button class="btn btn-primary btn-sm" onclick="exportarPDFSeguimiento()">📄 PDF</button>
-        <button class="btn btn-gold btn-sm" onclick="exportarJPGProgramacion()">📸 JPG</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportarExcelModerno()">📊 Excel</button>
-      </div>
-    </div>
-
-    <!-- Nota del día -->
-    <div class="seg-nota-bar" id="segNotaBar">
-      <span style="font-size:12px;color:var(--t3);flex:1" id="segNotaTxt">Sin nota del día</span>
-      <button class="btn btn-ghost btn-xs" onclick="openNota()">✏ Editar nota</button>
-    </div>
-
-    <!-- Barra de modo equipo (visible solo en multi-mode) -->
-    <div id="segMultiBar" style="display:none;background:var(--primary);color:#fff;border-radius:var(--r);padding:10px 16px;margin-top:10px;display:none;align-items:center;gap:10px">
-      <span style="font-size:13px;font-weight:600">👥 Modo equipo activo — selecciona los colaboradores con la misma tarea</span>
-      <span id="segSelCount" style="background:rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:auto">0 seleccionados</span>
-      <button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="toggleSegMultiMode()">✕ Salir</button>
-    </div>
-
-    <!-- Lista de asignaciones para seguimiento -->
-    <div id="segList" style="display:flex;flex-direction:column;gap:10px;margin-top:12px"></div>
-
-    <div id="segEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--t3)">
-      <div style="font-size:40px;margin-bottom:12px">📋</div>
-      <div style="font-size:15px;font-weight:600;color:var(--t2)">No hay asignaciones para hoy</div>
-      <div style="font-size:13px;margin-top:6px">Ve a la pestaña Asignación para agregar actividades</div>
-    </div>
-  </div>
-</div>
-
 <!-- ══ PAGE: DASHBOARD ══ -->
 <div class="pg" id="pg-dashboard">
   <div class="rpt-pg">
@@ -1819,59 +1786,6 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 
     <!-- Contenido -->
     <div id="dashContent"></div>
-  </div>
-</div>
-
-<!-- ══ MODAL: SEGUIMIENTO DETALLE ══ -->
-<div class="modal-bg" id="mSeg">
-  <div class="modal mw-lg">
-    <h3>📸 Registrar avance</h3>
-    <p class="modal-sub" id="mSegSub">Documenta el trabajo realizado</p>
-    <!-- Team members list (visible only in group mode) -->
-    <div id="mSegTeamBox" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:7px">👥 Aplicar a estos colaboradores:</div>
-      <div id="mSegTeamList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-      <div style="font-size:11px;color:var(--mint);margin-top:8px;font-weight:600">El mismo porcentaje, detalle y fotos se asignará a todos.</div>
-    </div>
-    <div class="fg-grid">
-      <div class="fg">
-        <label>% Avance</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="segPctBtns">
-          <button class="pct-btn" onclick="setPct(25,this)">25%</button>
-          <button class="pct-btn" onclick="setPct(50,this)">50%</button>
-          <button class="pct-btn" onclick="setPct(75,this)">75%</button>
-          <button class="pct-btn on" onclick="setPct(100,this)">100%</button>
-        </div>
-      </div>
-      <div class="fg">
-        <label>Hora de registro</label>
-        <input type="time" id="segHora" style="font-size:15px">
-      </div>
-      <div class="fg full">
-        <label>Detalle de actividad realizada</label>
-        <textarea id="segDetalle" placeholder="Describe el trabajo realizado, materiales usados, incidencias, observaciones…" style="min-height:80px"></textarea>
-      </div>
-    </div>
-    <div class="fg full" style="margin-top:8px">
-      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3)">Fotos de evidencia</label>
-      <div style="display:flex;gap:8px;margin-top:7px">
-        <label style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:14px 8px;border:2px dashed var(--border2);border-radius:var(--r);cursor:pointer;background:var(--surface2);text-align:center">
-          <span style="font-size:26px">📷</span>
-          <span style="font-size:12px;font-weight:700;color:var(--t2)">Cámara</span>
-          <input type="file" id="segCamera" accept="image/*" capture="environment" onchange="prevSegPhotos(event)" style="display:none">
-        </label>
-        <label style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:14px 8px;border:2px dashed var(--border2);border-radius:var(--r);cursor:pointer;background:var(--surface2);text-align:center">
-          <span style="font-size:26px">🖼</span>
-          <span style="font-size:12px;font-weight:700;color:var(--t2)">Galería</span>
-          <input type="file" id="segGaleria" multiple accept="image/*" onchange="prevSegPhotos(event)" style="display:none">
-        </label>
-      </div>
-      <div class="photo-prevs" id="segPhotoPrevs" style="margin-top:8px"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeSeg()">Cancelar</button>
-      <button class="btn btn-mint" onclick="saveSeg()">✓ Guardar avance</button>
-    </div>
   </div>
 </div>
 
@@ -2110,7 +2024,6 @@ function showPg(n,el){
   if(n==='proyectos'){projLV();renderProjects();}
   if(n==='actfreq')renderActFreq();
   if(n==='historial')renderHistorial();
-  if(n==='seguimiento')renderSeguimiento();
   if(n==='dashboard'){onDashFilterTypeChange();renderDashboard();}
   chips();
   updateFAB(n);
@@ -2120,7 +2033,6 @@ function chips(){
   document.getElementById('chipDone').textContent=asigs.filter(a=>a.done).length;
   document.getElementById('chipProj').textContent=proyectos.filter(p=>p.estado==='activo').length;
   const ch=document.getElementById('chipHist');if(ch)ch.textContent=historial.length;
-  const chs=document.getElementById('chipSeg');if(chs)chs.textContent=asigs.filter(a=>a.segDone).length;
 }
 
 /* ═══ NOTA ═══ */
@@ -2455,12 +2367,14 @@ function syncProj(a){if(!a.proyectoId)return;const pr=proyectos.find(x=>x.id==a.
      - Emit Pusher 'asig-updated' for real-time sync
      - Invalidate React Query cache
 ══════════════════════════════════════════════════════════════ */
-function openComp(aid){const a=asigs.find(x=>x.id===aid);if(!a)return;compId=aid;tempPhotos=[...(a.fotos||[])];document.getElementById('mCompSub').textContent=`${a.nombre} — ${a.actividad.substring(0,55)}${a.actividad.length>55?'…':''}`;document.getElementById('cHora').value=a.horaFin||nowStr();document.getElementById('cEst').value=(a.estado&&a.estado!=='pendiente')?a.estado:'completada';document.getElementById('cObs').value=a.observaciones||'';renderPPs();document.getElementById('mComp').classList.add('on');}
+let compPct=100;
+function setCompPct(v,btn){compPct=v;document.querySelectorAll('#compPctBtns .pct-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');}
+function openComp(aid){const a=asigs.find(x=>x.id===aid);if(!a)return;compId=aid;tempPhotos=[...(a.fotos||[])];document.getElementById('mCompSub').textContent=`${a.nombre} — ${a.actividad.substring(0,55)}${a.actividad.length>55?'…':''}`;document.getElementById('cHora').value=a.horaFin||nowStr();document.getElementById('cEst').value=(a.estado&&a.estado!=='pendiente')?a.estado:'completada';document.getElementById('cObs').value=a.observaciones||'';compPct=a.seguimiento?.pct??100;document.querySelectorAll('#compPctBtns .pct-btn').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===compPct));renderPPs();document.getElementById('mComp').classList.add('on');}
 function closeComp(){document.getElementById('mComp').classList.remove('on');compId=null;tempPhotos=[];}
 function prevPhotos(e){Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{tempPhotos.push(ev.target.result);renderPPs();};r.readAsDataURL(f);});}
 function renderPPs(){document.getElementById('photoPrevs').innerHTML=tempPhotos.map((f,i)=>`<div class="photo-prev"><img src="${f}"><button class="photo-prev-del" onclick="rmP(${i})">✕</button></div>`).join('');}
 function rmP(i){tempPhotos.splice(i,1);renderPPs();}
-function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.done=true;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=document.getElementById('cEst').value;a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];syncProj(a);closeComp();renderAssigned();chips();saveMemory();toast(`✓ ${a.nombre} registrado`);}
+function saveComp(){const a=asigs.find(x=>x.id===compId);if(!a)return;a.horaFin=document.getElementById('cHora').value||nowStr();a.estado=compPct===100?document.getElementById('cEst').value:compPct===0?'pendiente':'parcial';a.done=(compPct===100);a.observaciones=document.getElementById('cObs').value.trim();a.fotos=[...tempPhotos];a.seguimiento={...(a.seguimiento||{}),pct:compPct,hora:a.horaFin};syncProj(a);closeComp();renderAssigned();chips();saveMemory();toast(`✓ ${a.nombre} registrado`);}
 
 /* ═══ LIGHTBOX ═══ */
 function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('on');}
@@ -2486,8 +2400,9 @@ function renderReport(){
     rows.forEach(a=>{
       const proj=a.proyectoId?proyectos.find(x=>x.id==a.proyectoId):null;
       const ph2=a.fotos.length?`<div class="ri-photos">${a.fotos.map(f=>`<img class="ri-photo" src="${f}" onclick="openLB('${f}')">`).join('')}</div>`:'';
+      const segPctVal=a.seguimiento?.pct;const segPctHtml=segPctVal!=null&&!a.done?`<span style="font-size:10px;font-weight:700;color:${segPctVal>=75?'var(--mint)':segPctVal>=25?'var(--amber)':'var(--coral)'};background:var(--surface2);padding:2px 7px;border-radius:20px;">${segPctVal}%</span>`:'';
       h+=`<div class="ri-row"><div class="ri-l"><div class="ri-av">${ini(a.nombre)}</div><div><div class="ri-name">${a.nombre}</div><div class="ri-act">${a.actividad}</div>${proj?`<div style="margin-top:3px"><span style="font-size:10px;font-weight:600;background:${proj.color}18;color:${proj.color};padding:2px 8px;border-radius:20px;border:1px solid ${proj.color}35">🏗️ ${proj.nombre}</span></div>`:''}${a.observaciones?`<div class="ri-obs">📝 ${a.observaciones}</div>`:''}${ph2}</div></div>
-      <div class="ri-r"><span class="${a.done?'badge bd':'badge bp'}">${a.done?'✓ Cumplida':'⏳ Pendiente'}</span>${a.horaFin?`<span style="font-size:10px;color:var(--t3)">🕐 ${a.horaFin}</span>`:''}
+      <div class="ri-r"><span class="${a.done?'badge bd':'badge bp'}">${a.done?'✓ Cumplida':'⏳ Pendiente'}</span>${segPctHtml}${a.horaFin?`<span style="font-size:10px;color:var(--t3)">🕐 ${a.horaFin}</span>`:''}
       <button class="done-btn${a.done?' done':''}" onclick="${a.done?`desmarcarR(${a.id})`:`openComp(${a.id})`}" style="width:26px;height:26px;font-size:12px">✓</button></div></div>`;
     });
     h+=`</div>`;
@@ -4401,8 +4316,8 @@ function reabrirDia(fecha){
   renderPool();
   renderAssigned();
   chips();
-  // Navigate to seguimiento page
-  showPg('seguimiento', document.querySelector('.nt[onclick*="seguimiento"]'));
+  // Navigate back to assignment page
+  showPg('asign', document.querySelector('.nt[onclick*="asign"]'));
   toast(`✓ Día ${fmt(fecha)} reabierto — ahora puedes editar y agregar avances`);
 }
 
@@ -4421,7 +4336,6 @@ function editAsig(aid){
   a.horaEstFin = newHoraFin.trim();
   saveMemory();
   renderAssigned();
-  if(typeof renderSeguimiento==='function') renderSeguimiento();
   toast('✓ Asignación actualizada');
 }
 
@@ -5307,14 +5221,8 @@ function abrirHojaColaboradores(){
 
 
 /* ═══════════════════════════════════════════════════════════
-   SEGUIMIENTO DIARIO — Data & Render
+   SEGUIMIENTO — Helpers (usados por las exportaciones)
 ═══════════════════════════════════════════════════════════ */
-let segCurId  = null;
-let segCurIds = [];      // multi-colaborador
-let segTempPhotos = [];
-let segPct = 100;
-let segMultiMode = false;
-let segSelIds = new Set();
 
 /* ── Detectar grupos en seguimiento (misma area+actividad) ── */
 function buildSegGroups(asigList) {
@@ -5340,271 +5248,6 @@ function buildSegGroups(asigList) {
   return groups;
 }
 
-function renderSeguimiento() {
-  const list  = document.getElementById('segList');
-  const empty = document.getElementById('segEmpty');
-  const notaTxt = document.getElementById('segNotaTxt');
-  if (notaTxt) notaTxt.textContent = nota || 'Sin nota del día';
-
-  // Multi-mode bar
-  const bar = document.getElementById('segMultiBar');
-  if (bar) bar.style.display = segMultiMode ? 'flex' : 'none';
-  const selCountEl = document.getElementById('segSelCount');
-  if (selCountEl) selCountEl.textContent = segSelIds.size + ' seleccionados';
-  const modeBtn = document.getElementById('btnSegMultiMode');
-  if (modeBtn) {
-    modeBtn.style.background = segMultiMode ? 'var(--primary)' : '';
-    modeBtn.style.color      = segMultiMode ? '#fff' : '';
-  }
-  const grpBtn = document.getElementById('btnSegRegistrarGrupo');
-  if (grpBtn) grpBtn.style.display = (segMultiMode && segSelIds.size >= 1) ? '' : 'none';
-
-  if (!asigs.length) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
-  empty.style.display = 'none';
-
-  const groups = buildSegGroups(asigs);
-  let html = '';
-
-  groups.forEach(g => {
-    if (g._grp) {
-      // ── Grupo header ──
-      const grpDone = g.members.every(m => (m.seguimiento?.pct ?? (m.done ? 100 : 0)) === 100);
-      const grpPct  = Math.round(g.members.reduce((s, m) => s + (m.seguimiento?.pct ?? (m.done ? 100 : 0)), 0) / g.members.length);
-      const barCol  = grpPct === 100 ? '#1A7A4A' : grpPct >= 50 ? '#C8A84B' : '#D62828';
-
-      // Combined fotos from all members
-      const allFotos = g.members.flatMap(m => m.seguimiento?.fotos || []);
-
-      // In multi-mode: show one big "Registrar grupo" card
-      const allIds = g.members.map(m => m.id).join(',');
-      html += `<div style="border:2px solid var(--primary);border-radius:var(--r);overflow:hidden;margin-bottom:4px">
-        <div style="background:var(--primary);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px">
-          <span style="font-size:13px;font-weight:700">👥 Equipo · ${g.area}</span>
-          <span style="font-size:11px;opacity:.8;flex:1">${(g.actividad||'').substring(0,55)}${(g.actividad||'').length>55?'…':''}</span>
-          <span style="font-size:11px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px">${g.members.length} colaboradores</span>
-          ${segMultiMode
-            ? `<button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="selAllSeg([${allIds}])">Seleccionar todos</button>`
-            : `<button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="abrirSegIds([${allIds}])">📸 Registrar equipo</button>`
-          }
-        </div>
-        <div style="padding:8px 12px 2px;background:var(--surface)">`;
-
-      g.members.forEach(a => { html += _segCardHtml(a); });
-
-      if (allFotos.length) {
-        html += `<div style="padding:8px 12px 10px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px">📸 Evidencia del equipo (${allFotos.length} foto${allFotos.length>1?'s':''})</div>
-          <div class="seg-fotos">${allFotos.map(f => `<img src="${f}" class="seg-foto-thumb" onclick="openLB('${f}')" alt="Evidencia">`).join('')}</div>
-        </div>`;
-      }
-      html += `</div></div>`;
-    } else {
-      html += _segCardHtml(g.members[0]);
-    }
-  });
-
-  list.innerHTML = html;
-}
-
-function _segCardHtml(a) {
-  const pp = personal.find(x => x.id === a.pid);
-  const color = pp?.color || '#003F87';
-  const seg = a.seguimiento || {};
-  const pct = seg.pct ?? (a.done ? 100 : 0);
-  const barColor = pct === 100 ? '#1A7A4A' : pct >= 50 ? '#C8A84B' : '#D62828';
-  const isSel = segSelIds.has(a.id);
-  let estadoBadge = '';
-  if (pct === 100) estadoBadge = '<span class="seg-estado-badge seg-estado-hecho">✓ Completada</span>';
-  else if (pct > 0) estadoBadge = '<span class="seg-estado-badge seg-estado-parcial">⚠ En progreso</span>';
-  else estadoBadge = '<span class="seg-estado-badge seg-estado-pend">◷ Pendiente</span>';
-
-  const fotosHtml = (seg.fotos || []).map(f =>
-    `<img src="${f}" class="seg-foto-thumb" onclick="openLB('${f}')" alt="Evidencia">`
-  ).join('');
-
-  // In multi-mode show checkbox style
-  const selBtn = segMultiMode
-    ? `<div onclick="toggleSegSel(${a.id})" style="width:22px;height:22px;border-radius:6px;border:2px solid ${isSel?'var(--mint)':'var(--border)'};background:${isSel?'var(--mint)':'#fff'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;font-size:13px;font-weight:700">${isSel?'✓':''}</div>`
-    : '';
-  const regBtn = segMultiMode
-    ? ''
-    : `<button class="btn btn-ghost btn-xs" onclick="editAsig(${a.id})" title="Editar">✏</button>
-       <button class="btn btn-primary btn-xs" onclick="abrirSeg(${a.id})">📸 Registrar</button>`;
-
-  return `<div class="seg-card${isSel?' seg-card-sel':''}" onclick="${segMultiMode?`toggleSegSel(${a.id})`:''}" style="${segMultiMode?'cursor:pointer;':''}">
-    <div class="seg-card-head">
-      ${selBtn}
-      <div class="seg-avatar" style="background:${color}">${ini(a.nombre)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:14px;color:var(--t1)">${a.nombre}</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">${a.area} · ${a.actividad.substring(0,55)}${a.actividad.length>55?'…':''}</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
-        ${estadoBadge}
-        ${regBtn}
-      </div>
-    </div>
-    <div class="seg-card-body">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="seg-progress" style="flex:1"><div class="seg-progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
-        <div style="font-size:13px;font-weight:700;color:${barColor};min-width:36px;text-align:right">${pct}%</div>
-      </div>
-      ${seg.detalle ? `<div class="seg-det-row"><span>Detalle:</span> ${seg.detalle}</div>` : ''}
-      ${seg.hora    ? `<div class="seg-det-row"><span>Registrado:</span> ${seg.hora}</div>` : ''}
-      ${fotosHtml   ? `<div class="seg-fotos">${fotosHtml}</div>` : ''}
-    </div>
-  </div>`;
-}
-
-/* ── Multi-mode controls ── */
-function toggleSegMultiMode() {
-  segMultiMode = !segMultiMode;
-  segSelIds = new Set();
-  renderSeguimiento();
-}
-
-function toggleSegSel(id) {
-  if (segSelIds.has(id)) segSelIds.delete(id);
-  else segSelIds.add(id);
-  renderSeguimiento();
-}
-
-function selAllSeg(ids) {
-  ids.forEach(id => segSelIds.add(id));
-  renderSeguimiento();
-}
-
-/* ── Abrir modal para IDs múltiples (llamado desde botón "Registrar equipo" del grupo) ── */
-function abrirSegIds(ids) {
-  if (!ids.length) return;
-  segCurIds = ids;
-  segCurId  = null;
-  _openSegModal(ids);
-}
-
-/* ── Abrir modal para selección manual del modo equipo ── */
-function abrirSegGrupo() {
-  const ids = [...segSelIds];
-  if (!ids.length) { toast('Selecciona al menos un colaborador','warn'); return; }
-  segCurIds = ids;
-  segCurId  = null;
-  _openSegModal(ids);
-}
-
-/* ── Abrir modal para un solo colaborador ── */
-function abrirSeg(id) {
-  segCurIds = [id];
-  segCurId  = id;
-  _openSegModal([id]);
-}
-
-function _openSegModal(ids) {
-  const first = asigs.find(x => x.id === ids[0]);
-  if (!first) return;
-  segTempPhotos = (first.seguimiento?.fotos || []).slice();
-  segPct = first.seguimiento?.pct ?? (first.done ? 100 : 0);
-
-  if (ids.length > 1) {
-    const names = ids.map(id => asigs.find(x => x.id === id)?.nombre).filter(Boolean);
-    document.getElementById('mSegSub').textContent = `${names.length} colaboradores · ${(first.actividad || '').substring(0, 45)}`;
-    const box = document.getElementById('mSegTeamBox');
-    const teamList = document.getElementById('mSegTeamList');
-    if (box) box.style.display = '';
-    if (teamList) teamList.innerHTML = names.map(n => `<span style="background:var(--primary);color:#fff;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600">${n}</span>`).join('');
-  } else {
-    document.getElementById('mSegSub').textContent = first.nombre + ' — ' + (first.actividad || '').substring(0, 50);
-    const box = document.getElementById('mSegTeamBox');
-    if (box) box.style.display = 'none';
-  }
-
-  document.getElementById('segDetalle').value = first.seguimiento?.detalle || '';
-  const now = new Date();
-  document.getElementById('segHora').value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  updatePctBtns(segPct);
-  renderSegPrevs();
-  document.getElementById('mSeg').classList.add('on');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeSeg() {
-  document.getElementById('mSeg').classList.remove('on');
-  document.body.style.overflow = '';
-  segCurId  = null;
-  segCurIds = [];
-  segTempPhotos = [];
-  document.getElementById('segPhotoPrevs').innerHTML = '';
-  document.getElementById('segCamera').value  = '';
-  document.getElementById('segGaleria').value = '';
-  const box = document.getElementById('mSegTeamBox');
-  if (box) box.style.display = 'none';
-}
-
-function setPct(v, btn) {
-  segPct = v;
-  updatePctBtns(v);
-}
-
-function updatePctBtns(v) {
-  document.querySelectorAll('.pct-btn').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.pct-btn').forEach(b => {
-    if (parseInt(b.textContent) === v) b.classList.add('on');
-  });
-}
-
-function prevSegPhotos(e) {
-  const files = Array.from(e.target.files);
-  files.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      segTempPhotos.push(ev.target.result);
-      renderSegPrevs();
-    };
-    reader.readAsDataURL(f);
-  });
-}
-
-function renderSegPrevs() {
-  const container = document.getElementById('segPhotoPrevs');
-  container.innerHTML = segTempPhotos.map((src, i) =>
-    `<div style="position:relative;display:inline-block;margin:3px">
-      <img src="${src}" style="width:72px;height:72px;object-fit:cover;border-radius:var(--r-xs);border:1.5px solid var(--border)">
-      <button onclick="removeSegPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:var(--coral);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
-    </div>`
-  ).join('');
-}
-
-function removeSegPhoto(i) {
-  segTempPhotos.splice(i, 1);
-  renderSegPrevs();
-}
-
-function saveSeg() {
-  const detalle = document.getElementById('segDetalle').value.trim();
-  const hora    = document.getElementById('segHora').value;
-  const ids     = segCurIds.length ? segCurIds : (segCurId ? [segCurId] : []);
-  if (!ids.length) return;
-
-  ids.forEach(id => {
-    const a = asigs.find(x => x.id === id);
-    if (!a) return;
-    a.seguimiento = { pct: segPct, detalle, hora, fotos: segTempPhotos.slice() };
-    if (segPct === 100) { a.done = true; a.estado = 'cumplida'; }
-  });
-
-  saveMemory();
-  closeSeg();
-  // Exit multi-mode after group registration
-  if (ids.length > 1) { segMultiMode = false; segSelIds = new Set(); }
-  renderSeguimiento();
-  chips();
-  toast(ids.length > 1
-    ? `✓ Avance registrado para ${ids.length} colaboradores`
-    : '✓ Avance registrado correctamente');
-}
 /* ═══════════════════════════════════════════════════════════
    EXPORTAR JPG — Para WhatsApp
 ═══════════════════════════════════════════════════════════ */
