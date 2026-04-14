@@ -1110,8 +1110,10 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
 .seg-pg{padding:22px 28px;max-width:900px;margin:0 auto}
 .seg-tb{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;flex-wrap:wrap}
 .seg-nota-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--primary-lt);border:1.5px solid var(--primary-mid);border-radius:var(--r-sm);margin-bottom:4px}
-.seg-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:0;overflow:hidden;box-shadow:var(--sh1);transition:box-shadow .15s}
+.seg-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:0;overflow:hidden;box-shadow:var(--sh1);transition:box-shadow .15s,border-color .15s}
 .seg-card:hover{box-shadow:var(--sh2)}
+.seg-card-sel{border-color:var(--mint)!important;background:#F0FDF4!important}
+.seg-card-sel .seg-card-head{background:#F0FDF4}
 .seg-card-head{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)}
 .seg-card-body{padding:14px 16px}
 .seg-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
@@ -1746,12 +1748,15 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="seg-tb">
       <div>
         <div style="font-family:'DM Sans',sans-serif;font-size:22px;color:var(--t1);font-weight:700">Seguimiento Diario</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">Registra avances, fotos de evidencia y genera reporte Word para el día</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">Registra avances, fotos de evidencia y genera reporte para el día</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
-        <button class="btn btn-ghost btn-sm" onclick="exportarWordSeguimiento()">📝 Reporte Word</button>
-        <button class="btn btn-gold btn-sm" onclick="exportarJPGProgramacion()">📸 JPG WhatsApp</button>
-        <button class="btn btn-primary btn-sm" onclick="exportarExcelModerno()">📊 Excel</button>
+        <button class="btn btn-ghost btn-sm" id="btnSegMultiMode" onclick="toggleSegMultiMode()" title="Seleccionar varios colaboradores con la misma tarea">👥 Modo equipo</button>
+        <button class="btn btn-mint btn-sm" id="btnSegRegistrarGrupo" style="display:none" onclick="abrirSegGrupo()">📸 Registrar grupo</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarWordSeguimiento()">📝 Word</button>
+        <button class="btn btn-primary btn-sm" onclick="exportarPDFSeguimiento()">📄 PDF</button>
+        <button class="btn btn-gold btn-sm" onclick="exportarJPGProgramacion()">📸 JPG</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarExcelModerno()">📊 Excel</button>
       </div>
     </div>
 
@@ -1759,6 +1764,13 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
     <div class="seg-nota-bar" id="segNotaBar">
       <span style="font-size:12px;color:var(--t3);flex:1" id="segNotaTxt">Sin nota del día</span>
       <button class="btn btn-ghost btn-xs" onclick="openNota()">✏ Editar nota</button>
+    </div>
+
+    <!-- Barra de modo equipo (visible solo en multi-mode) -->
+    <div id="segMultiBar" style="display:none;background:var(--primary);color:#fff;border-radius:var(--r);padding:10px 16px;margin-top:10px;display:none;align-items:center;gap:10px">
+      <span style="font-size:13px;font-weight:600">👥 Modo equipo activo — selecciona los colaboradores con la misma tarea</span>
+      <span id="segSelCount" style="background:rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:auto">0 seleccionados</span>
+      <button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="toggleSegMultiMode()">✕ Salir</button>
     </div>
 
     <!-- Lista de asignaciones para seguimiento -->
@@ -1815,6 +1827,12 @@ header .mem-pill.warn{background:rgba(200,168,75,.35);color:var(--gold-mid)}
   <div class="modal mw-lg">
     <h3>📸 Registrar avance</h3>
     <p class="modal-sub" id="mSegSub">Documenta el trabajo realizado</p>
+    <!-- Team members list (visible only in group mode) -->
+    <div id="mSegTeamBox" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:7px">👥 Aplicar a estos colaboradores:</div>
+      <div id="mSegTeamList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      <div style="font-size:11px;color:var(--mint);margin-top:8px;font-weight:600">El mismo porcentaje, detalle y fotos se asignará a todos.</div>
+    </div>
     <div class="fg-grid">
       <div class="fg">
         <label>% Avance</label>
@@ -5291,15 +5309,55 @@ function abrirHojaColaboradores(){
 /* ═══════════════════════════════════════════════════════════
    SEGUIMIENTO DIARIO — Data & Render
 ═══════════════════════════════════════════════════════════ */
-let segCurId = null;
+let segCurId  = null;
+let segCurIds = [];      // multi-colaborador
 let segTempPhotos = [];
 let segPct = 100;
+let segMultiMode = false;
+let segSelIds = new Set();
+
+/* ── Detectar grupos en seguimiento (misma area+actividad) ── */
+function buildSegGroups(asigList) {
+  const seen = new Set();
+  const groups = [];
+  asigList.forEach(a => {
+    if (seen.has(a.id)) return;
+    const key = a.area + '||' + (a.actividad || '').trim().toLowerCase();
+    const mates = asigList.filter(b =>
+      !seen.has(b.id) && b.id !== a.id &&
+      b.area === a.area &&
+      (b.actividad || '').trim().toLowerCase() === (a.actividad || '').trim().toLowerCase()
+    );
+    if (mates.length) {
+      const members = [a, ...mates];
+      members.forEach(m => seen.add(m.id));
+      groups.push({ _grp: true, area: a.area, actividad: a.actividad, members });
+    } else {
+      seen.add(a.id);
+      groups.push({ _grp: false, members: [a] });
+    }
+  });
+  return groups;
+}
 
 function renderSeguimiento() {
-  const list = document.getElementById('segList');
+  const list  = document.getElementById('segList');
   const empty = document.getElementById('segEmpty');
   const notaTxt = document.getElementById('segNotaTxt');
   if (notaTxt) notaTxt.textContent = nota || 'Sin nota del día';
+
+  // Multi-mode bar
+  const bar = document.getElementById('segMultiBar');
+  if (bar) bar.style.display = segMultiMode ? 'flex' : 'none';
+  const selCountEl = document.getElementById('segSelCount');
+  if (selCountEl) selCountEl.textContent = segSelIds.size + ' seleccionados';
+  const modeBtn = document.getElementById('btnSegMultiMode');
+  if (modeBtn) {
+    modeBtn.style.background = segMultiMode ? 'var(--primary)' : '';
+    modeBtn.style.color      = segMultiMode ? '#fff' : '';
+  }
+  const grpBtn = document.getElementById('btnSegRegistrarGrupo');
+  if (grpBtn) grpBtn.style.display = (segMultiMode && segSelIds.size >= 1) ? '' : 'none';
 
   if (!asigs.length) {
     list.innerHTML = '';
@@ -5308,58 +5366,162 @@ function renderSeguimiento() {
   }
   empty.style.display = 'none';
 
-  const ACOL = {"Club de Playa":"#005A8E","Centro de Gobierno":"#003F87","Módulo 7":"#155E38","Baños M4":"#7B2D12","Otros":"#2C3E50"};
+  const groups = buildSegGroups(asigs);
+  let html = '';
 
-  list.innerHTML = asigs.map(a => {
-    const pp = personal.find(x => x.id === a.pid);
-    const color = pp?.color || '#003F87';
-    const seg = a.seguimiento || {};
-    const pct = seg.pct ?? (a.done ? 100 : 0);
-    const barColor = pct === 100 ? '#1A7A4A' : pct >= 50 ? '#C8A84B' : '#D62828';
-    const ini = (n => n ? n.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase() : '??')(a.nombre);
-    let estadoBadge = '';
-    if (pct === 100) estadoBadge = '<span class="seg-estado-badge seg-estado-hecho">✓ Completada</span>';
-    else if (pct > 0) estadoBadge = '<span class="seg-estado-badge seg-estado-parcial">⚠ En progreso</span>';
-    else estadoBadge = '<span class="seg-estado-badge seg-estado-pend">◷ Pendiente</span>';
+  groups.forEach(g => {
+    if (g._grp) {
+      // ── Grupo header ──
+      const grpDone = g.members.every(m => (m.seguimiento?.pct ?? (m.done ? 100 : 0)) === 100);
+      const grpPct  = Math.round(g.members.reduce((s, m) => s + (m.seguimiento?.pct ?? (m.done ? 100 : 0)), 0) / g.members.length);
+      const barCol  = grpPct === 100 ? '#1A7A4A' : grpPct >= 50 ? '#C8A84B' : '#D62828';
 
-    const fotosHtml = (seg.fotos || []).map(f =>
-      `<img src="${f}" class="seg-foto-thumb" onclick="lightbox('${f}')" alt="Evidencia">`
-    ).join('');
+      // Combined fotos from all members
+      const allFotos = g.members.flatMap(m => m.seguimiento?.fotos || []);
 
-    return `<div class="seg-card">
-      <div class="seg-card-head">
-        <div class="seg-avatar" style="background:${color}">${ini}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:14px;color:var(--t1)">${a.nombre}</div>
-          <div style="font-size:12px;color:var(--t3);margin-top:2px">${a.area} · ${a.actividad.substring(0,60)}${a.actividad.length>60?'…':''}</div>
+      // In multi-mode: show one big "Registrar grupo" card
+      const allIds = g.members.map(m => m.id).join(',');
+      html += `<div style="border:2px solid var(--primary);border-radius:var(--r);overflow:hidden;margin-bottom:4px">
+        <div style="background:var(--primary);color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:13px;font-weight:700">👥 Equipo · ${g.area}</span>
+          <span style="font-size:11px;opacity:.8;flex:1">${(g.actividad||'').substring(0,55)}${(g.actividad||'').length>55?'…':''}</span>
+          <span style="font-size:11px;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px">${g.members.length} colaboradores</span>
+          ${segMultiMode
+            ? `<button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="selAllSeg([${allIds}])">Seleccionar todos</button>`
+            : `<button class="btn btn-ghost btn-xs" style="color:#fff;border-color:rgba(255,255,255,.4)" onclick="abrirSegIds([${allIds}])">📸 Registrar equipo</button>`
+          }
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          ${estadoBadge}
-          <button class="btn btn-ghost btn-xs" onclick="editAsig(${a.id})" title="Editar actividad y horarios">✏</button>
-          <button class="btn btn-primary btn-xs" onclick="abrirSeg(${a.id})">📸 Registrar</button>
-        </div>
-      </div>
-      <div class="seg-card-body">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="seg-progress" style="flex:1"><div class="seg-progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
-          <div style="font-size:13px;font-weight:700;color:${barColor};min-width:36px;text-align:right">${pct}%</div>
-        </div>
-        ${seg.detalle ? `<div class="seg-det-row"><span>Detalle:</span> ${seg.detalle}</div>` : ''}
-        ${seg.hora ? `<div class="seg-det-row"><span>Registrado:</span> ${seg.hora}</div>` : ''}
-        ${fotosHtml ? `<div class="seg-fotos">${fotosHtml}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
+        <div style="padding:8px 12px 2px;background:var(--surface)">`;
+
+      g.members.forEach(a => { html += _segCardHtml(a); });
+
+      if (allFotos.length) {
+        html += `<div style="padding:8px 12px 10px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px">📸 Evidencia del equipo (${allFotos.length} foto${allFotos.length>1?'s':''})</div>
+          <div class="seg-fotos">${allFotos.map(f => `<img src="${f}" class="seg-foto-thumb" onclick="openLB('${f}')" alt="Evidencia">`).join('')}</div>
+        </div>`;
+      }
+      html += `</div></div>`;
+    } else {
+      html += _segCardHtml(g.members[0]);
+    }
+  });
+
+  list.innerHTML = html;
 }
 
+function _segCardHtml(a) {
+  const pp = personal.find(x => x.id === a.pid);
+  const color = pp?.color || '#003F87';
+  const seg = a.seguimiento || {};
+  const pct = seg.pct ?? (a.done ? 100 : 0);
+  const barColor = pct === 100 ? '#1A7A4A' : pct >= 50 ? '#C8A84B' : '#D62828';
+  const isSel = segSelIds.has(a.id);
+  let estadoBadge = '';
+  if (pct === 100) estadoBadge = '<span class="seg-estado-badge seg-estado-hecho">✓ Completada</span>';
+  else if (pct > 0) estadoBadge = '<span class="seg-estado-badge seg-estado-parcial">⚠ En progreso</span>';
+  else estadoBadge = '<span class="seg-estado-badge seg-estado-pend">◷ Pendiente</span>';
+
+  const fotosHtml = (seg.fotos || []).map(f =>
+    `<img src="${f}" class="seg-foto-thumb" onclick="openLB('${f}')" alt="Evidencia">`
+  ).join('');
+
+  // In multi-mode show checkbox style
+  const selBtn = segMultiMode
+    ? `<div onclick="toggleSegSel(${a.id})" style="width:22px;height:22px;border-radius:6px;border:2px solid ${isSel?'var(--mint)':'var(--border)'};background:${isSel?'var(--mint)':'#fff'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#fff;font-size:13px;font-weight:700">${isSel?'✓':''}</div>`
+    : '';
+  const regBtn = segMultiMode
+    ? ''
+    : `<button class="btn btn-ghost btn-xs" onclick="editAsig(${a.id})" title="Editar">✏</button>
+       <button class="btn btn-primary btn-xs" onclick="abrirSeg(${a.id})">📸 Registrar</button>`;
+
+  return `<div class="seg-card${isSel?' seg-card-sel':''}" onclick="${segMultiMode?`toggleSegSel(${a.id})`:''}" style="${segMultiMode?'cursor:pointer;':''}">
+    <div class="seg-card-head">
+      ${selBtn}
+      <div class="seg-avatar" style="background:${color}">${ini(a.nombre)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;color:var(--t1)">${a.nombre}</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">${a.area} · ${a.actividad.substring(0,55)}${a.actividad.length>55?'…':''}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0" onclick="event.stopPropagation()">
+        ${estadoBadge}
+        ${regBtn}
+      </div>
+    </div>
+    <div class="seg-card-body">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="seg-progress" style="flex:1"><div class="seg-progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div style="font-size:13px;font-weight:700;color:${barColor};min-width:36px;text-align:right">${pct}%</div>
+      </div>
+      ${seg.detalle ? `<div class="seg-det-row"><span>Detalle:</span> ${seg.detalle}</div>` : ''}
+      ${seg.hora    ? `<div class="seg-det-row"><span>Registrado:</span> ${seg.hora}</div>` : ''}
+      ${fotosHtml   ? `<div class="seg-fotos">${fotosHtml}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ── Multi-mode controls ── */
+function toggleSegMultiMode() {
+  segMultiMode = !segMultiMode;
+  segSelIds = new Set();
+  renderSeguimiento();
+}
+
+function toggleSegSel(id) {
+  if (segSelIds.has(id)) segSelIds.delete(id);
+  else segSelIds.add(id);
+  renderSeguimiento();
+}
+
+function selAllSeg(ids) {
+  ids.forEach(id => segSelIds.add(id));
+  renderSeguimiento();
+}
+
+/* ── Abrir modal para IDs múltiples (llamado desde botón "Registrar equipo" del grupo) ── */
+function abrirSegIds(ids) {
+  if (!ids.length) return;
+  segCurIds = ids;
+  segCurId  = null;
+  _openSegModal(ids);
+}
+
+/* ── Abrir modal para selección manual del modo equipo ── */
+function abrirSegGrupo() {
+  const ids = [...segSelIds];
+  if (!ids.length) { toast('Selecciona al menos un colaborador','warn'); return; }
+  segCurIds = ids;
+  segCurId  = null;
+  _openSegModal(ids);
+}
+
+/* ── Abrir modal para un solo colaborador ── */
 function abrirSeg(id) {
-  const a = asigs.find(x => x.id === id);
-  if (!a) return;
-  segCurId = id;
-  segTempPhotos = (a.seguimiento?.fotos || []).slice();
-  segPct = a.seguimiento?.pct ?? (a.done ? 100 : 0);
-  document.getElementById('mSegSub').textContent = a.nombre + ' — ' + a.actividad.substring(0, 50);
-  document.getElementById('segDetalle').value = a.seguimiento?.detalle || '';
+  segCurIds = [id];
+  segCurId  = id;
+  _openSegModal([id]);
+}
+
+function _openSegModal(ids) {
+  const first = asigs.find(x => x.id === ids[0]);
+  if (!first) return;
+  segTempPhotos = (first.seguimiento?.fotos || []).slice();
+  segPct = first.seguimiento?.pct ?? (first.done ? 100 : 0);
+
+  if (ids.length > 1) {
+    const names = ids.map(id => asigs.find(x => x.id === id)?.nombre).filter(Boolean);
+    document.getElementById('mSegSub').textContent = `${names.length} colaboradores · ${(first.actividad || '').substring(0, 45)}`;
+    const box = document.getElementById('mSegTeamBox');
+    const teamList = document.getElementById('mSegTeamList');
+    if (box) box.style.display = '';
+    if (teamList) teamList.innerHTML = names.map(n => `<span style="background:var(--primary);color:#fff;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600">${n}</span>`).join('');
+  } else {
+    document.getElementById('mSegSub').textContent = first.nombre + ' — ' + (first.actividad || '').substring(0, 50);
+    const box = document.getElementById('mSegTeamBox');
+    if (box) box.style.display = 'none';
+  }
+
+  document.getElementById('segDetalle').value = first.seguimiento?.detalle || '';
   const now = new Date();
   document.getElementById('segHora').value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   updatePctBtns(segPct);
@@ -5371,11 +5533,14 @@ function abrirSeg(id) {
 function closeSeg() {
   document.getElementById('mSeg').classList.remove('on');
   document.body.style.overflow = '';
-  segCurId = null;
+  segCurId  = null;
+  segCurIds = [];
   segTempPhotos = [];
   document.getElementById('segPhotoPrevs').innerHTML = '';
-  document.getElementById('segCamera').value = '';
+  document.getElementById('segCamera').value  = '';
   document.getElementById('segGaleria').value = '';
+  const box = document.getElementById('mSegTeamBox');
+  if (box) box.style.display = 'none';
 }
 
 function setPct(v, btn) {
@@ -5418,17 +5583,27 @@ function removeSegPhoto(i) {
 }
 
 function saveSeg() {
-  const a = asigs.find(x => x.id === segCurId);
-  if (!a) return;
   const detalle = document.getElementById('segDetalle').value.trim();
-  const hora = document.getElementById('segHora').value;
-  a.seguimiento = { pct: segPct, detalle, hora, fotos: segTempPhotos.slice() };
-  if (segPct === 100) a.done = true;
+  const hora    = document.getElementById('segHora').value;
+  const ids     = segCurIds.length ? segCurIds : (segCurId ? [segCurId] : []);
+  if (!ids.length) return;
+
+  ids.forEach(id => {
+    const a = asigs.find(x => x.id === id);
+    if (!a) return;
+    a.seguimiento = { pct: segPct, detalle, hora, fotos: segTempPhotos.slice() };
+    if (segPct === 100) { a.done = true; a.estado = 'cumplida'; }
+  });
+
   saveMemory();
   closeSeg();
+  // Exit multi-mode after group registration
+  if (ids.length > 1) { segMultiMode = false; segSelIds = new Set(); }
   renderSeguimiento();
   chips();
-  toast('✓ Avance registrado correctamente');
+  toast(ids.length > 1
+    ? `✓ Avance registrado para ${ids.length} colaboradores`
+    : '✓ Avance registrado correctamente');
 }
 /* ═══════════════════════════════════════════════════════════
    EXPORTAR JPG — Para WhatsApp
@@ -5677,66 +5852,238 @@ function exportarExcelModerno() {
 /* ═══════════════════════════════════════════════════════════
    REPORTE WORD — Con fotos y detalle de seguimiento
 ═══════════════════════════════════════════════════════════ */
+/* ══ EXPORTAR PDF SEGUIMIENTO (con fotos grandes y equipos) ══ */
+function exportarPDFSeguimiento() {
+  if (!asigs.length) { toast('No hay asignaciones para el reporte','warn'); return; }
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+  const ff=(w,s)=>{doc.setFont('helvetica',w);doc.setFontSize(s);};
+  const sf=c=>doc.setFillColor(...c), st=c=>doc.setTextColor(...c);
+  const date = document.getElementById('globalDate').value;
+  const ds = new Date(date+'T12:00:00').toLocaleDateString('es-SV',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const titulo = 'Seguimiento Diario';
+  const subtitulo = ds.charAt(0).toUpperCase()+ds.slice(1);
+
+  ispHdr(doc, titulo, subtitulo);
+  let y = 34;
+  function chy(n){ if(y+n>H-14){ doc.addPage(); ispHdr(doc,titulo,subtitulo); y=34; } }
+
+  const done = asigs.filter(a=>a.done).length;
+  const pct  = asigs.length ? Math.round(done/asigs.length*100) : 0;
+  y = ispKPIs(doc, y, [
+    {l:'Asignaciones',v:asigs.length,c:ISPC.azul},
+    {l:'Completadas',v:done,c:ISPC.mint},
+    {l:'Pendientes',v:asigs.length-done,c:ISPC.coral},
+    {l:'Avance',v:pct+'%',c:ISPC.gold}
+  ]);
+  sf(ISPC.bg); doc.roundedRect(14,y,W-28,5,2.5,2.5,'F');
+  if(pct>0){sf(ISPC.mint); doc.roundedRect(14,y,(W-28)*pct/100,5,2.5,2.5,'F');}
+  y+=12;
+
+  if(nota){
+    chy(13); sf(ISPC.bg); doc.setDrawColor(...ISPC.gold); doc.setLineWidth(.5);
+    doc.roundedRect(14,y,W-28,10,2,2,'FD');
+    sf(ISPC.gold); doc.roundedRect(14,y,3.5,10,2,0,'F');
+    st(ISPC.t1); ff('bold',7.5); doc.text('Nota:',21,y+6.5);
+    ff('normal',7.5); doc.text(nota.slice(0,130),34,y+6.5,{maxWidth:W-50});
+    y+=14;
+  }
+
+  // Build area groups, then seg groups within each area
+  const areaGrpPDF = {};
+  asigs.forEach(a=>{ if(!areaGrpPDF[a.area]) areaGrpPDF[a.area]=[]; areaGrpPDF[a.area].push(a); });
+  const areaKeys = [...AREAS,...Object.keys(areaGrpPDF).filter(k=>!AREAS.includes(k))].filter(k=>areaGrpPDF[k]);
+
+  for(const area of areaKeys){
+    const areaAsigs = areaGrpPDF[area];
+    const ac = ISPC.aCol[area]||ISPC.t2;
+    const ad = areaAsigs.filter(a=>a.done).length;
+    const ap = Math.round(ad/areaAsigs.length*100);
+    const segGroups = buildSegGroups(areaAsigs);
+
+    chy(28);
+    sf(ac); doc.roundedRect(14,y,W-28,11,2,2,'F');
+    st(ISPC.white); ff('bold',10); doc.text('  '+area.toUpperCase(),14,y+7.8);
+    sf(ap>=80?[0,100,60]:ap>=50?[140,100,0]:[180,20,20]);
+    doc.roundedRect(W-54,y+2,38,7,3.5,3.5,'F');
+    st(ISPC.white); ff('bold',7);
+    doc.text(`${ad}/${areaAsigs.length} · ${ap}%`,W-35,y+6.8,{align:'center'});
+    y+=13;
+    sf(ISPC.bg); doc.roundedRect(14,y,W-28,3.5,1.8,1.8,'F');
+    if(ap>0){sf(ap>=80?ISPC.mint:ap>=50?ISPC.gold:ISPC.coral); doc.roundedRect(14,y,(W-28)*ap/100,3.5,1.8,1.8,'F');}
+    y+=8;
+
+    segGroups.forEach(g => {
+      const isTeam = g._grp && g.members.length>1;
+      const members = g.members;
+
+      if(isTeam){
+        // Team header bar
+        const teamAvg = Math.round(members.reduce((s,m)=>s+(m.seguimiento?.pct??(m.done?100:0)),0)/members.length);
+        chy(12);
+        sf([0,63,135]); doc.roundedRect(14,y,W-28,9,2,2,'F');
+        st(ISPC.white); ff('bold',8);
+        const teamNames = members.map(m=>m.nombre).join(' · ');
+        doc.text('👥 '+teamNames.slice(0,80),18,y+6);
+        ff('normal',7.5); doc.text(`Equipo ${members.length} · ${teamAvg}% avance`,W-14,y+6,{align:'right'});
+        y+=11;
+      }
+
+      members.forEach(a => {
+        const seg = a.seguimiento||{};
+        const avance = seg.pct??(a.done?100:0);
+        const barC = avance===100?ISPC.mint:avance>=50?ISPC.gold:ISPC.coral;
+        const rowH = 13+(seg.detalle?5:0);
+        chy(rowH+2);
+
+        sf(avance===100?[236,253,245]:[250,252,255]);
+        doc.setDrawColor(...(avance===100?ISPC.mint:ISPC.brd)); doc.setLineWidth(.3);
+        doc.roundedRect(14,y,W-28,rowH,1.5,1.5,'FD');
+        sf(avance===100?ISPC.mint:ISPC.brd); doc.roundedRect(14,y,3.5,rowH,1.5,0,'F');
+
+        st(ISPC.t1); ff('bold',8.5); doc.text(a.nombre,21,y+5.5);
+        st(ISPC.t2); ff('normal',7.5); doc.text((a.actividad||'').slice(0,72),21,y+(seg.detalle?9.5:8.5));
+        if(seg.detalle){st(ISPC.mint);ff('italic',7);doc.text('Det: '+seg.detalle.slice(0,75),21,y+rowH-2);}
+
+        // Progress bar inline
+        const bx=W-60; const bw=42;
+        sf(ISPC.bg); doc.roundedRect(bx,y+4,bw,3,1.5,1.5,'F');
+        if(avance>0){sf(barC); doc.roundedRect(bx,y+4,bw*avance/100,3,1.5,1.5,'F');}
+        st(barC); ff('bold',7); doc.text(avance+'%',bx+bw+3,y+7);
+        if(a.done){sf(ISPC.mint);doc.roundedRect(bx,y+8.5,bw,6,3,3,'F');st(ISPC.white);ff('bold',6.5);doc.text('✓ Cumplida',bx+bw/2,y+12.8,{align:'center'});}
+        else{sf([255,232,232]);doc.setDrawColor(...ISPC.coral);doc.setLineWidth(.25);doc.roundedRect(bx,y+8.5,bw,6,3,3,'FD');st(ISPC.coral);ff('bold',6.5);doc.text('Pendiente',bx+bw/2,y+12.8,{align:'center'});}
+        if(seg.hora){st(ISPC.t3);ff('normal',6);doc.text('🕐 '+seg.hora,21,y+rowH-1);}
+        y+=rowH+3;
+      });
+
+      // Combined fotos for team, individual fotos for solo
+      const fotosToShow = isTeam
+        ? members.flatMap(m=>(m.seguimiento?.fotos||[]))
+        : (members[0].seguimiento?.fotos||[]);
+      if(fotosToShow.length){
+        y = pdfFotos(doc, fotosToShow, y, W, H,
+          isTeam?`Evidencia del equipo (${members.length} colaboradores)`:'Evidencia fotográfica');
+      }
+    });
+    y+=6;
+  }
+
+  // No disponibles
+  const ndList = personal.filter(p=>p.status!=='libre');
+  if(ndList.length){
+    chy(14); sf([255,242,242]); doc.setDrawColor(...ISPC.coral); doc.setLineWidth(.4);
+    doc.roundedRect(14,y,W-28,9,2,2,'FD');
+    sf(ISPC.coral); doc.roundedRect(14,y,3.5,9,2,0,'F');
+    st(ISPC.coral); ff('bold',7.5); doc.text('No disponibles:',21,y+6);
+    st(ISPC.t2); ff('normal',7.5);
+    doc.text(ndList.map(p=>`${p.nombre} (${p.status==='compensatorio'?'Comp.':p.status==='permiso'?'Perm.':'Incap.'})`).join(' · '),W-14,y+6,{align:'right',maxWidth:W*0.58});
+    y+=13;
+  }
+
+  const tp=doc.internal.getNumberOfPages();
+  for(let i=1;i<=tp;i++){doc.setPage(i);ispFtr(doc,i,tp);}
+  const blob=new Blob([doc.output('arraybuffer')],{type:'application/pdf'});
+  smartDownload(blob,`ISP_Seguimiento_${date}.pdf`);
+  toast('✓ PDF de seguimiento generado con equipos y fotos');
+}
+
 function exportarWordSeguimiento() {
   if (!asigs.length) { toast('No hay asignaciones para el reporte', 'warn'); return; }
   const date = document.getElementById('globalDate').value;
   const dateStr = new Date(date + 'T12:00:00').toLocaleDateString('es-SV', {weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const fechaGen = new Date().toLocaleString('es-SV');
   const ACOL = {"Club de Playa":"#005A8E","Centro de Gobierno":"#003F87","Módulo 7":"#155E38","Baños M4":"#7B2D12","Otros":"#2C3E50"};
-  const grp = {};
-  asigs.forEach(a => { if (!grp[a.area]) grp[a.area] = []; grp[a.area].push(a); });
+
+  // Build area groups first
+  const areaGrp = {};
+  asigs.forEach(a => { if (!areaGrp[a.area]) areaGrp[a.area] = []; areaGrp[a.area].push(a); });
+
   const done = asigs.filter(a => a.done).length;
   const pct = asigs.length ? Math.round(done / asigs.length * 100) : 0;
   const ndList = personal.filter(p => p.status !== 'libre');
 
-  const actividadesHtml = [...AREAS, ...Object.keys(grp).filter(k => !AREAS.includes(k))].filter(a => grp[a]?.length).map(area => {
+  // Build semantic groups: collaborators sharing same area+actividad are shown as a team block
+  function _wordSegActRow(a, bg) {
+    const pp  = personal.find(x => x.id === a.pid);
+    const seg = a.seguimiento || {};
+    const avance = seg.pct ?? (a.done ? 100 : 0);
+    return `<tr style="background:${bg}">
+      <td style="padding:10px 14px;border:1px solid #DDE6EE;width:24%;font-weight:600;color:#1a2a3a;vertical-align:top">
+        ${a.nombre}<br><span style="font-size:10px;color:#64748b;font-weight:400">${pp?.specs?.join(', ')||''}</span>
+      </td>
+      <td style="padding:10px 14px;border:1px solid #DDE6EE;vertical-align:top">
+        <div style="font-size:11px;color:#64748b;margin-bottom:4px">⏰ ${a.hora||'6:30 am'}${a.horaEstFin?' → '+a.horaEstFin:''}</div>
+        <span style="padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${a.done?'#E8F5ED':'#FEF0F0'};color:${a.done?'#1A7A4A':'#C0392B'}">${a.done?'✓ Cumplida':'Pendiente'}</span>
+        <div style="margin-top:8px">
+          <div style="font-size:10px;color:#64748b;margin-bottom:3px">Avance: ${avance}%</div>
+          <div style="height:6px;background:#E8EFF6;border-radius:3px;width:180px;overflow:hidden">
+            <div style="height:100%;width:${avance*1.8}px;background:${avance===100?'#1A7A4A':avance>=50?'#C8A84B':'#D62828'};border-radius:3px"></div>
+          </div>
+        </div>
+        ${seg.detalle?`<div style="font-size:12px;color:#475569;margin-top:6px;padding:8px 10px;background:#F0F4F8;border-radius:6px;border-left:3px solid #003F87"><strong>Detalle:</strong> ${seg.detalle}</div>`:''}
+        ${seg.hora?`<div style="font-size:11px;color:#94a3b8;margin-top:4px">Registrado a las ${seg.hora}</div>`:''}
+      </td>
+    </tr>`;
+  }
+
+  const actividadesHtml = [...AREAS, ...Object.keys(areaGrp).filter(k => !AREAS.includes(k))].filter(a => areaGrp[a]?.length).map(area => {
     const col = ACOL[area] || '#525252';
-    const rows = grp[area].map((a, i) => {
-      const pp = personal.find(x => x.id === a.pid);
-      const seg = a.seguimiento || {};
-      const avance = seg.pct ?? (a.done ? 100 : 0);
-      const barW = Math.round(avance * 1.2);
-      const fotosHtml = (seg.fotos || []).length > 0
-        ? `<tr><td colspan="2" style="padding:10px 14px;background:#F8FAFC;border:1px solid #DDE6EE">
+    const areaAsigs = areaGrp[area];
+    const segGroups = buildSegGroups(areaAsigs);
+    const areaDone = areaAsigs.filter(a => a.done).length;
+
+    let rows = '';
+    segGroups.forEach((g, gi) => {
+      if (g._grp) {
+        // Team block
+        const teamBg  = gi%2===0 ? '#EEF4FF' : '#F0F8FF';
+        const teamDone = g.members.every(m => m.done);
+        const allFotos = g.members.flatMap(m => (m.seguimiento?.fotos || []));
+        const avgs = Math.round(g.members.reduce((s,m)=>s+(m.seguimiento?.pct??(m.done?100:0)),0)/g.members.length);
+        rows += `<tr style="background:#0A1F5C">
+          <td colspan="2" style="padding:8px 14px;color:#fff;font-size:12px;font-weight:700">
+            👥 Equipo · ${g.actividad}
+            <span style="float:right;font-size:11px;opacity:.85">${g.members.length} colaboradores · ${avgs}% avance promedio</span>
+          </td>
+        </tr>`;
+        g.members.forEach((m, mi) => { rows += _wordSegActRow(m, mi%2===0?teamBg:'#fff'); });
+        if (allFotos.length) {
+          rows += `<tr><td colspan="2" style="padding:12px 14px;background:#F8FAFC;border:1px solid #DDE6EE">
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📸 Evidencia del equipo (${allFotos.length} foto${allFotos.length>1?'s':''})</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              ${allFotos.map(f=>`<img src="${f}" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #DDE6EE">`).join('')}
+            </div>
+          </td></tr>`;
+        }
+      } else {
+        const a   = g.members[0];
+        const seg = a.seguimiento || {};
+        rows += _wordSegActRow(a, gi%2===0?'#F8FAFC':'#FFFFFF');
+        if ((seg.fotos||[]).length) {
+          rows += `<tr><td colspan="2" style="padding:10px 14px;background:#F8FAFC;border:1px solid #DDE6EE">
             <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📸 Fotos de evidencia (${seg.fotos.length})</div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-              ${seg.fotos.map(f => `<img src="${f}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;border:1.5px solid #DDE6EE">`).join('')}
+              ${seg.fotos.map(f=>`<img src="${f}" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #DDE6EE">`).join('')}
             </div>
-          </td></tr>`
-        : '';
-      return `
-        <tr style="background:${i%2===0?'#F8FAFC':'#FFFFFF'}">
-          <td style="padding:10px 14px;border:1px solid #DDE6EE;width:22%;font-weight:600;color:#1a2a3a;vertical-align:top">${a.nombre}<br><span style="font-size:10px;color:#64748b;font-weight:400">${pp?.specs?.join(', ')||''}</span></td>
-          <td style="padding:10px 14px;border:1px solid #DDE6EE;vertical-align:top">
-            <div style="font-weight:500;color:#1a2a3a;margin-bottom:6px">${a.actividad}</div>
-            <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
-              <span style="font-size:11px;color:#64748b">⏰ ${a.hora||'6:30 am'}${a.horaEstFin?' → '+a.horaEstFin:''}</span>
-              <span style="padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${a.done?'#E8F5ED':'#FEF0F0'};color:${a.done?'#1A7A4A':'#C0392B'}">${a.done?'✓ Cumplida':'Pendiente'}</span>
-            </div>
-            <div style="margin-bottom:4px">
-              <div style="font-size:10px;color:#64748b;margin-bottom:3px">Avance: ${avance}%</div>
-              <div style="height:6px;background:#E8EFF6;border-radius:3px;width:200px;overflow:hidden">
-                <div style="height:100%;width:${barW}px;background:${avance===100?'#1A7A4A':avance>=50?'#C8A84B':'#D62828'};border-radius:3px"></div>
-              </div>
-            </div>
-            ${seg.detalle ? `<div style="font-size:12px;color:#475569;margin-top:6px;padding:8px 10px;background:#F0F4F8;border-radius:6px;border-left:3px solid #003F87"><strong>Detalle:</strong> ${seg.detalle}</div>` : ''}
-            ${seg.hora ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px">Registrado a las ${seg.hora}</div>` : ''}
-          </td>
-        </tr>
-        ${fotosHtml}`;
-    }).join('');
+          </td></tr>`;
+        }
+      }
+    });
 
-    const areaDone = grp[area].filter(a => a.done).length;
-    return `
-      <div style="margin-bottom:28px;page-break-inside:avoid">
-        <div style="background:${col};color:#fff;padding:12px 18px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:15px;font-weight:700;letter-spacing:.5px">${area}</span>
-          <span style="font-size:12px;opacity:.9">${areaDone}/${grp[area].length} completadas</span>
-        </div>
-        <table style="width:100%;border-collapse:collapse;border:1.5px solid ${col};border-top:none;border-radius:0 0 8px 8px;overflow:hidden">
-          ${rows}
-        </table>
-      </div>`;
+    return `<div style="margin-bottom:28px;page-break-inside:avoid">
+      <div style="background:${col};color:#fff;padding:12px 18px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:15px;font-weight:700;letter-spacing:.5px">${area}</span>
+        <span style="font-size:12px;opacity:.9">${areaDone}/${areaAsigs.length} completadas</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border:1.5px solid ${col};border-top:none;border-radius:0 0 8px 8px;overflow:hidden">
+        <thead><tr style="background:${col}22">
+          <th style="padding:7px 14px;text-align:left;border:1px solid #DDE6EE;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:${col};width:24%">Colaborador</th>
+          <th style="padding:7px 14px;text-align:left;border:1px solid #DDE6EE;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:${col}">Actividad · Avance · Detalle</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
   }).join('');
 
   const ndSection = ndList.length ? `
